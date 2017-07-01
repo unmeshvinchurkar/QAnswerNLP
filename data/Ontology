@@ -1,0 +1,134 @@
+THING
+____________
+ENTITY
+APPLICATION
+COMPANY
+COMMAND
+INSTANCE
+TEMPLATE
+CLASS
+NAME
+VERSIONING_TYPE
+PAGE
+
+INSTANCE
+_________
+instance
+
+TEMPLATE
+________
+template
+
+PAGE
+______
+Explorer
+Project Explorer
+Advanced Builder
+Version history
+Verify pane
+Rule Definition
+Rule Builder
+
+LANGUAGE
+__________
+java
+Structured Rule Language
+
+
+
+APPLICATION
+______________
+Blaze Ide
+RMA
+Rule maintenance application
+Blaze
+Blaze advisor
+
+CLASS
+_________
+Nd.*
+
+COMPANY
+________
+Fair isaac
+Fair isaac corp
+Fair isaac corporation
+FICO
+
+
+VERSIONING_TYPE
+________________
+Explicit versioning
+Implicit versioning
+
+TABLE
+______
+Single-axis
+double-axis
+
+KEY
+____
+TAB
+Enter
+
+
+COMMAND
+_________
+Delete
+Rule Profiling
+Check Out
+Check In
+Compile
+Publish
+Save
+Promote
+Edit
+Insert Column
+Insert Row
+checked out
+checked in
+Save As
+New Verification Query
+Results Pane
+Results pages
+GROUP
+
+METHOD
+_________
+.*() /function/?
+
+
+NAME
+_______
+srl name
+name
+
+ENTITY
+_________
+METAPHOR
+Folder
+project
+project entity
+decision graph
+Decision Flow
+Business Term Set
+Function
+Ruleset
+Business Term
+Rule
+Variable
+Pattern
+
+Query
+________
+verification query
+comparison query
+
+METAPHOR
+_________
+classic decision tree
+Decision Tree
+Decision Table
+Scorecard
+
+

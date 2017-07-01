@@ -1,0 +1,58 @@
+Explorer|Advanced Builder|Version history|Verify pane|Rule Definition|Rule Builder	PAGE
+template	TEMPLATE
+instance	INSTANCE
+java|Structured Rule Language	LANGUAGE
+Blaze Ide|RMA|Rule maintenance application|[bB]laze|Blaze [Aa]dvisor	APPLICATION
+Nd.*	CLASS
+Fair [iI]saac|Fair [iI]saac [cC]orp|Fair [iI]saac [cC]orporation|FICO	COMPANY
+Explicit versioning|Implicit versioning	VERSIONING
+Single-axis|Double-axis	TABLE
+TAB|Enter	COMMAND
+Folder|project|project entity|decision graph|Decision Flow|Business Term Set|Function|Ruleset|Business Term|Rule|Variable|Pattern	ENTITY
+verification query|comparison query	QUERY
+classic decision tree|Decision Tree|Decision Table|Scorecard	METAPHOR
+Compiling|Delete|Rule Profiling|Check Out|Compiling|Check In|Compile|Publish|Save|Promote|Edit|Insert Column|Insert Row|checked out|checked in|Save As|New Verification Query|[gG]roup	COMMAND
+
+
+
+
+{ 
+ruleType: "tokens",
+pattern:   ($service) ,
+result :"SERVICE",
+action: ( Annotate($0, ner, "SERVICE"))
+}
+
+
+
+
+
+{ 
+ruleType: "tokens",
+pattern:   ($wizard) ,
+result :"WIZARD",
+action: ( Annotate($0, ner, "WIZARD"))
+}
+
+
+{ 
+ruleType: "tokens",
+pattern:   ($score) ,
+result :"SCORE",
+action: ( Annotate($0, ner, "SCORE"))
+}
+
+
+{ 
+ruleType: "tokens",
+pattern:   ($editor) ,
+result :"EDITOR",
+action: ( Annotate($0, ner, "EDITOR"))
+}
+
+{ 
+ruleType: "tokens",
+pattern:   ($flowItems) ,
+result :"FLOW_ITEM",
+action: ( Annotate($0, ner, "FLOW_ITEM"))
+}
