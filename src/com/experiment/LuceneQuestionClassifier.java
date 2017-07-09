@@ -34,11 +34,11 @@ public class LuceneQuestionClassifier {
 			IndexWriter writer = new IndexWriter(_directory, config);
 
 			writer.addDocument(_createDocument("EXPLAINATION",
-					"procedure explain process describe can create update delete do how to"));
+					"where who procedure explain process describe can create update delete do how to"));
 			writer.addDocument(
-					_createDocument("YES-NO", "any possible to equals equal greater smaller lesser better than"));
-			writer.addDocument(_createDocument("NUMERIC", "are how many number total sum no."));
-			writer.addDocument(_createDocument("LIST", "get list name names all type types of kind kinds from"));
+					_createDocument("YES-NO", "any possible to equals equal greater smaller lesser better than "));
+			writer.addDocument(_createDocument("NUMERIC", "are how many number total sum calculate no. min max minimum maximum average"));
+			writer.addDocument(_createDocument("LIST", "which get list name names all type types of kind kinds from"));
 			writer.close();
 
 		} catch (IOException e) {

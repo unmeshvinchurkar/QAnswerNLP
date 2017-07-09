@@ -2,8 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/javax.json.jar"/>
-	<classpathentry kind="lib" path="lib/protobuf.jar"/>
 	<classpathentry kind="lib" path="lib/stanford-corenlp-3.8.0.jar"/>
 	<classpathentry kind="lib" path="lib/com.google.guava_1.6.0.jar"/>
 	<classpathentry kind="lib" path="C:/Users/unmeshvinchurkar/Desktop/NLP/CoreNLP/stanford-corenlp-full-2017-06-09/stanford-corenlp-3.8.0-models.jar"/>
@@ -12,5 +10,7 @@
 	<classpathentry kind="lib" path="lib/lucene-core-5.5.0.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-analyzers-common-5.5.0.jar"/>
 	<classpathentry kind="lib" path="lib/lucene-queryparser-5.5.0.jar"/>
+	<classpathentry kind="lib" path="lib/org-apache-commons-logging.jar"/>
+	<classpathentry kind="lib" path="lib/jwnl-1.4_rc3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

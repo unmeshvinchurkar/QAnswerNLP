@@ -20,7 +20,7 @@ public class SpellCorrector {
 	}
 
 	public String getSuggestion(String word) {
-		List list = _spellChecker.getSuggestions(word, 1);
+		List list = _spellChecker.getSuggestions(word, 3);
 		if (list != null && list.size() > 0) {
 			return (String) list.get(0);
 		}
@@ -34,7 +34,7 @@ public class SpellCorrector {
 	public static void main(String[] args) {
 		try {
 			SpellCorrector s = new SpellCorrector();
-			System.out.println(s.getSuggestions("apples"));
+			System.out.println(s.getSuggestions("generate"));
 
 		} catch (IOException e) {
 			e.printStackTrace();
