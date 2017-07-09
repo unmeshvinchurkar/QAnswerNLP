@@ -1,15 +1,16 @@
+$entity =(reason|pass|Next|Previous|Finish|Value|return|final|calculate|calculation|partial|reason|num|move|module|main|copybook|information|BOM|datum|/entry/ /point/|interface|[tT]ask|characteristic|return|expression|[Pp]arameter|Folder|project|/project/ /entity/|/Decision/ /Flow/|/Business/ /Term/ /Set/|Function|/[rR]uleset/|/Business/ /Term/|Rule|Variable|Pattern)	
 $repoType=(/non\-versioned/|versioned)
 $template =(/[dD]esicion/   /[tT]able/ /[tT]emplate/| /[sS]core/ /[cC]ard/ /[tT]emplate/| /[tT]emplate/ | /[dD]esicion/   /[tT]ree/ /[tT]emplate/ | /[rR]uleset/   /[tT]emplate/| /[rR]ule/   /[tT]emplate/)
 $instance =(/[iI]nstance/)
 $browser = (/[fF]irefox/| /[iI]nternet/ /[eE]xplorer/|Chrome|Safari)
-$page = (/Explorer/ /pane/| /Project/ /Explorer/|Explorer|/[aA]dvanced/ /[bB]uilder/ | /Version/ /history/|/Verify/ /pane/|/Rule Definition/|/Rule/ /Builder/)
+$page = (/[eE]xplorer?/ /pane/| /Project/ /Explorer/|Explorer|/[aA]dvanced/ /[bB]uilder/ | /Version/ /history/|/Verify/ /pane/|/Rule Definition/|/Rule/ /Builder/)
 $language = (java|/Structured/ /Rule/ /Language/|COBOL|cobol)
 $class = (/.*Nd.*/|/java\.lang\..*/|/java\.util\..*/)
 $method =(/.*\(\)/|/[fF]unction/|/[mM]ethod/)
 $company = (/Fair/ /Isaac/|/Fair/ /Isaac/ /Corp/|/Fair/ /Isaac/ /Corporation/|FICO)
-$app = (/Blaze/ /Ide/|RMA|/rules?/ /maintenance/ /applications?/)
+$app = (/[bB]laze/ /[aA]dvisor/|/[bB]laze/|/[bB]laze/ /Ide/|RMA|rma|/[rR]ules?/ /[mM]aintenance/ /[aA]pplications?/)
 $versioning =(/Explicit/ /versioning/|/Implicit/ /versioning/)
-$metaphor =(/score/ /model/|/Decision/ /graph/|/Decision/ /table/|[sS]corecard|/Decision/ /tree/| /[cC]lassic/ /[dD]ecision/ /[tT]ree/)
+$metaphor =(/[rR]uleset/|/score/ /model/|/[Dd]ecision/ /[gG]raph/|/[dD]ecision/ /[tT]able/|/[sS]corecard/|/Decision/ /tree/| /[cC]lassic/ /[dD]ecision/ /[tT]ree/)
 $operation= (Refresh|Download|Print|Edit|Compile|Delete|/Rule/ /Profiling/|/Check/ /Out/|Compiling|/Check/ /In/|Publish|Save|Promote|Edit|/Insert/ /Column/|/Insert/ /Row/|/Save/ /As/|/New/ /Verification/ /Query/)
 $status = (/[cC]hecked/ /[oO]ut/|/[cC]hecked/ /[iI]n/|/[rR]ead/ /[oO]nly/)
 $key =(TAB|Enter|Ctrl|F2|[bB]ackspace)
@@ -27,7 +28,6 @@ $file=(/Deployment/ /Definition/|DD|RMAD|/.*\.pdf/|/.*\.zip/|/.*\.html/| /.*\.se
 $name=(/\w{3,}?/ /[nN]ames?/)
 $picker=(/\w{3,}?/ /[pP]icker/)
 $group=(/\w{3,}?/ /[gG]roup/)
-$entity =(reason|pass|Next|Previous|Finish|Value|return|final|calculate|calculation|partial|reason|num|move|module|main|property|copybook|information|BOM|datum|/entry/ /point/|interface|[tT]ask|characteristic|return|expression|[Pp]arameter|Folder|project|/project/ /entity/|/Decision/ /Flow/|/Business/ /Term/ /Set/|Function|Ruleset|/Business/ /Term/|Rule|Variable|Pattern)	
 $code =(/reason/ /code/)
 $tab =(/\w{3,}?/ /[tT]ab/|[tT]ab)
 $panel =(/\w{3,}?/ /[pP]anel/|/[pP]anel/)
@@ -48,11 +48,11 @@ $signature=(/\w{3,}?/ /[sS]ignature/)
 $type=(/\w{3,}?/ /type/)
 $user=(/[uU]ser/| /[yY]ou/)
 $server=(/[tT]omcat/|/[wW]ebsphere/|/[jJ]boss/)
-
-
-
-
-
+$property=(/\w{3,}?/ /[pP]roperty/|property| /dynamic/ /\w{3,}?/ /[pP]roperty/)
+$icon=(/\w{3,}?/ /[iI]con/)
+$view=(/\w{3,}?/ /[vV]iew/)
+$project=(/[pP]roject/)
+$report =(/[rR]eport/)
 
 # Define ruleType to be over tokens
 ENV.defaults["ruleType"] = "tokens"
@@ -65,6 +65,44 @@ tokens = { type: "CLASS", value: "edu.stanford.nlp.ling.CoreAnnotations$TokensAn
 
 ENV.defaultStringPatternFlags = 2
 ENV.defaultStringMatchFlags =2
+
+{ 
+ruleType: "tokens",
+pattern:   ($report) ,
+result :"REPORT",
+action: ( Annotate($0, ner, "REPORT"))
+}
+
+
+
+{ 
+ruleType: "tokens",
+pattern:   ($project) ,
+result :"PROJECT",
+action: ( Annotate($0, ner, "PROJECT"))
+}
+
+
+{ 
+ruleType: "tokens",
+pattern:   ($icon) ,
+result :"ICON",
+action: ( Annotate($0, ner, "ICON"))
+}
+
+{ 
+ruleType: "tokens",
+pattern:   ($view) ,
+result :"VIEW",
+action: ( Annotate($0, ner, "VIEW"))
+}
+
+{ 
+ruleType: "tokens",
+pattern:   ($property) ,
+result :"PROPERTY",
+action: ( Annotate($0, ner, "PROPERTY"))
+}
 
 { 
 ruleType: "tokens",
