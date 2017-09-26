@@ -112,21 +112,17 @@ public class NdSearchFactory {
 
 		Analyzer analyzer = null;
 
-		if (locale.equals(Locale.CHINA) || locale.equals(Locale.JAPAN) || locale.equals(Locale.KOREA)) {
-			return new CJKAnalyzer();
-		} else if (locale.equals(Locale.CHINESE) || locale.equals(Locale.JAPANESE) || locale.equals(Locale.KOREAN)) {
-			return new CJKAnalyzer();
-		} else if (locale.equals(Locale.FRANCE) || locale.equals(Locale.FRENCH)) {
-			return new FrenchAnalyzer();
-		} else if (locale.equals(Locale.GERMAN) || locale.equals(Locale.GERMANY)) {
-			return new GermanAnalyzer();
-		} else if (locale.equals(Locale.ITALIAN) || locale.equals(Locale.ITALY)) {
-			return new SpanishAnalyzer();
-		} else if (locale.getCountry().equalsIgnoreCase("Russia") || locale.getLanguage().equalsIgnoreCase("Russian")) {
-			return new RussianAnalyzer();
-		} else if (locale.getLanguage().equalsIgnoreCase("Danish")) {
-			return new DanishAnalyzer();
-		}
+//		  if (locale.equals(Locale.FRANCE) || locale.equals(Locale.FRENCH)) {
+//			return new FrenchAnalyzer();
+//		} else if (locale.equals(Locale.GERMAN) || locale.equals(Locale.GERMANY)) {
+//			return new GermanAnalyzer();
+//		} else if (locale.equals(Locale.ITALIAN) || locale.equals(Locale.ITALY)) {
+//			return new SpanishAnalyzer();
+//		} else if (locale.getCountry().equalsIgnoreCase("Russia") || locale.getLanguage().equalsIgnoreCase("Russian")) {
+//			return new RussianAnalyzer();
+//		} else if (locale.getLanguage().equalsIgnoreCase("Danish")) {
+//			return new DanishAnalyzer();
+//		}
 
 		return new StandardAnalyzer();
 

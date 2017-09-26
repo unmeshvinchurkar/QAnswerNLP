@@ -25,7 +25,9 @@ import edu.stanford.nlp.ie.util.RelationTriple;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.tokensregex.CoreMapExpressionExtractor;
+import edu.stanford.nlp.ling.tokensregex.Env;
 import edu.stanford.nlp.ling.tokensregex.MatchedExpression;
+import edu.stanford.nlp.ling.tokensregex.NodePattern;
 import edu.stanford.nlp.ling.tokensregex.TokenSequencePattern;
 import edu.stanford.nlp.naturalli.NaturalLogicAnnotations;
 import edu.stanford.nlp.pipeline.Annotation;
@@ -35,6 +37,8 @@ import edu.stanford.nlp.util.CoreMap;
 public class ConceptExtractor {
 
 	public static void main(String[] args) throws IOException {
+		
+		
 		PrintWriter out;
 		String rules;
 
@@ -42,8 +46,11 @@ public class ConceptExtractor {
 
 		out = new PrintWriter(System.out);
 
+		Env env =	TokenSequencePattern.getNewEnv();
+		env.setDefaultStringMatchFlags(NodePattern.CASE_INSENSITIVE);
+		
 		CoreMapExpressionExtractor<MatchedExpression> extractor = CoreMapExpressionExtractor
-				.createExtractorFromFiles(TokenSequencePattern.getNewEnv(), rules);
+				.createExtractorFromFiles(env, rules);
 
 		Properties props = new Properties();
 		props.put("annotators",
@@ -54,6 +61,8 @@ public class ConceptExtractor {
 		props.put("openie.ignoreaffinity", "false");
 
 		StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+		
+		
 
 		File f = new File("C:\\Users\\unmeshvinchurkar\\Desktop\\sample.txt");
 

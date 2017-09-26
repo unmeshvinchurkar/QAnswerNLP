@@ -71,7 +71,7 @@ public class QTargetExtractor {
 
 		String line = null;
 
-		Annotation annotation = new Annotation("how it can create rules maintenance application ");
+		Annotation annotation = new Annotation("how to create  Decision table ");
 
 		try {
 			pipeline.annotate(annotation);

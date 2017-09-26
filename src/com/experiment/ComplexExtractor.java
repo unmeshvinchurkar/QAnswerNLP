@@ -33,24 +33,24 @@ import edu.stanford.nlp.naturalli.NaturalLogicAnnotations;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.util.CoreMap;
-import net.didion.jwnl.JWNL;
-import net.didion.jwnl.JWNLException;
-import net.didion.jwnl.data.IndexWord;
-import net.didion.jwnl.data.POS;
-import net.didion.jwnl.data.PointerType;
-import net.didion.jwnl.data.PointerUtils;
-import net.didion.jwnl.data.Synset;
-import net.didion.jwnl.data.Word;
-import net.didion.jwnl.data.list.PointerTargetNode;
-import net.didion.jwnl.data.list.PointerTargetNodeList;
-import net.didion.jwnl.data.relationship.Relationship;
+//import net.didion.jwnl.JWNL;
+//import net.didion.jwnl.JWNLException;
+//import net.didion.jwnl.data.IndexWord;
+//import net.didion.jwnl.data.POS;
+//import net.didion.jwnl.data.PointerType;
+//import net.didion.jwnl.data.PointerUtils;
+//import net.didion.jwnl.data.Synset;
+//import net.didion.jwnl.data.Word;
+//import net.didion.jwnl.data.list.PointerTargetNode;
+//import net.didion.jwnl.data.list.PointerTargetNodeList;
+//import net.didion.jwnl.data.relationship.Relationship;
 //import net.sf.extjwnl.JWNLException;
 //import net.sf.extjwnl.data.IndexWord;
 //import net.sf.extjwnl.data.POS;
 //import net.sf.extjwnl.data.PointerUtils;
 //import net.sf.extjwnl.data.list.PointerTargetNodeList;
 //import net.sf.extjwnl.dictionary.Dictionary;
-import net.didion.jwnl.dictionary.Dictionary;
+//import net.didion.jwnl.dictionary.Dictionary;
 
 public class ComplexExtractor {
 
@@ -192,18 +192,21 @@ public class ComplexExtractor {
 									String sub = parseSubjectObj(triple.subjectLemmaGloss(), wordNerMap);
 									String verb = parseVerb(triple.relationLemmaGloss());
 									String object = parseObj(triple.objectLemmaGloss(), wordNerMap);
-									
-									if ((sub.trim().equals("") || sub.trim().equals("you")) && !verb.trim().equals("") && !object.trim().equals("")
-											) {
+
+									if ((sub.trim().equals("") || sub.trim().equals("you")) && !verb.trim().equals("")
+											&& !object.trim().equals("")) {
 										System.out.println(sub + " __________  " + verb + " __________ " + object);
 
 									}
 
-//									if (!sub.trim().equals("") && !verb.trim().equals("") && !object.trim().equals("")
-//											&& !object.trim().equals(sub.trim())) {
-//										System.out.println(sub + " __________  " + verb + " __________ " + object);
-//
-//									}
+									// if (!sub.trim().equals("") &&
+									// !verb.trim().equals("") &&
+									// !object.trim().equals("")
+									// && !object.trim().equals(sub.trim())) {
+									// System.out.println(sub + " __________ " +
+									// verb + " __________ " + object);
+									//
+									// }
 
 									// if (sub != null && verb != null && object
 									// != null && !sub.trim().equals("")
@@ -234,7 +237,7 @@ public class ComplexExtractor {
 		StringBuffer sb = new StringBuffer();
 
 		try {
-			//sub = removeStopWords(sub);
+			// sub = removeStopWords(sub);
 		} catch (Exception e) {
 		}
 
@@ -243,23 +246,22 @@ public class ComplexExtractor {
 
 		if (tokens != null) {
 			for (int i = 0; i < tokens.length; i++) {
-				if (wordNerMap.containsKey(tokens[i].toLowerCase())) {				
+				if (wordNerMap.containsKey(tokens[i].toLowerCase())) {
 					sb.append(tokens[i].trim() + " ");
 					count++;
 				}
 			}
 		}
 
-		
 		return sb.toString();
 	}
 
 	public static String parseObj(String sub, Map<String, String> wordNerMap) {
 
 		StringBuffer sb = new StringBuffer();
-		
+
 		sub = sub.replaceAll("in|you", "");
-		//sub.replaceAll("you", "");
+		// sub.replaceAll("you", "");
 
 		try {
 			sub = removeStopWords(sub);
@@ -320,7 +322,7 @@ public class ComplexExtractor {
 
 		CharArraySet stopSet = new CharArraySet(stopWords, true);
 
-	//	stopSet.add("you");
+		// stopSet.add("you");
 		stopSet.add("over");
 		stopSet.add("your");
 		stopSet.add("see");
@@ -367,7 +369,7 @@ public class ComplexExtractor {
 		stopSet.add("always");
 		stopSet.add("user");
 		stopSet.add("can");
-		//stopSet.add("it");
+		// stopSet.add("it");
 		stopSet.add("need");
 		stopSet.add("b");
 		stopSet.add("be");
@@ -438,103 +440,6 @@ public class ComplexExtractor {
 			sb.append(term + " ");
 		}
 		return sb.toString().trim();
-	}
-
-	public static void main1(String args[]) throws JWNLException, FileNotFoundException {
-
-		File flag = new File(
-				"C:\\Users\\unmeshvinchurkar\\Desktop\\watson\\New folder\\standfordProj\\data\\properties.xml");
-
-		// flag.exists()
-		JWNL.initialize(new FileInputStream(
-				"C:\\Users\\unmeshvinchurkar\\Desktop\\watson\\New folder\\standfordProj\\data\\properties.xml"));
-		Dictionary wordnet = Dictionary.getInstance();
-
-		IndexWord word = wordnet.getIndexWord(POS.VERB, "update");
-
-		PointerTargetNodeList nyms = PointerUtils.getInstance().getSynonyms(word.getSense(2));
-
-		// nyms.
-
-		System.out.println(">>>> " + word.getLemma());
-
-		Synset[] senses = word.getSenses();
-		for (int i = 0; i < 2; i++) {
-			// System.out.println(
-			// ": " + senses[i].getKey() + ": " +
-			// senses[i].getWords().toString() + " : " + word.getLemma());
-
-			System.out.println(getRelated(senses[i], PointerType.HYPERNYM));
-
-			Word[] ws = senses[i].getWords();
-
-			if (ws != null) {
-				for (int j = 0; j < ws.length; j++) {
-					System.out.println(">> " + ws[j].getLemma());
-				}
-
-			}
-
-			System.out.println("____________________________________ ");
-
-		}
-
-		/**
-		 * Dictionary d = Dictionary.getInstance();
-		 * 
-		 * IndexWord word = d.getIndexWord(POS.NOUN, "airport");
-		 * 
-		 * PointerTargetNodeList hypernyms =
-		 * PointerUtils.getDirectHypernyms(word.getSenses().get(0));
-		 * System.out.println("Direct hypernyms of \"" + word.getLemma() +
-		 * "\":"); hypernyms.print();
-		 */
-
-		/**
-		 * String[] words = new String[] {"generate", "create" }; SynonymMap map
-		 * = null; try { map = new SynonymMap(new FileInputStream(
-		 * "C:\\Users\\unmeshvinchurkar\\Desktop\\watson\\New
-		 * folder\\standfordProj\\data\\wn_s.pl"));
-		 * 
-		 * 
-		 * 
-		 * // new File("com/data/wn_s.pl").exists() } catch (Exception e) {
-		 * 
-		 * } for (int i = 0; i < words.length; i++) { String[] synonyms =
-		 * map.getSynonyms(words[i]); System.out.println(words[i] + ":" +
-		 * java.util.Arrays.asList(synonyms).toString()); }
-		 */
-
-	}
-
-	// Related words for a given sense (do synonyms by default)
-	// Probably should implement all PointerTypes
-	public static ArrayList<Synset> getRelated(Synset sense, PointerType type)
-			throws JWNLException, NullPointerException {
-		PointerTargetNodeList relatedList;
-		// Call a different function based on what type of relationship you are
-		// looking for
-		if (type == PointerType.HYPERNYM) {
-			relatedList = PointerUtils.getInstance().getDirectHypernyms(sense);
-		} else if (type == PointerType.HYPONYM) {
-			relatedList = PointerUtils.getInstance().getDirectHyponyms(sense);
-		} 
-		else if (type == PointerType.DERIVED) {
-			relatedList =PointerUtils.getInstance().getDerived(sense);
-		} 		
-		else {
-			relatedList = PointerUtils.getInstance().getSynonyms(sense);
-		}
-		// Iterate through the related list and make an ArrayList of Synsets to
-		// send back
-		Iterator i = relatedList.iterator();
-		ArrayList a = new ArrayList();
-		while (i.hasNext()) {
-			PointerTargetNode related = (PointerTargetNode) i.next();
-			Synset s = related.getSynset();
-			a.add(s);
-		}
-		return a;
 	}
 
 }

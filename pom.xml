@@ -1,0 +1,174 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>StandfordNlp</groupId>
+  <artifactId>StandfordNlp</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.0.1</version>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/lib</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+  
+  
+  <!-- 
+  <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-dependency-plugin</artifactId>
+    <configuration>
+        <outputDirectory>
+            ${project.build.directory}
+        </outputDirectory>
+    </configuration>
+</plugin>
+
+-->
+
+
+ 
+  <dependencies>
+  
+  <!-- https://mvnrepository.com/artifact/org.apache.lucene/lucene-wordnet -->
+<dependency>
+    <groupId>org.apache.lucene</groupId>
+    <artifactId>lucene-wordnet</artifactId>
+    <version>3.3.0</version>
+</dependency>
+  
+  
+  <dependency>
+    <groupId>net.sf.jwordnet</groupId>
+    <artifactId>jwnl</artifactId>
+    <version>1.3.3</version>
+</dependency>
+  
+  <dependency>
+    <groupId>com.fifesoft</groupId>
+    <artifactId>spellchecker</artifactId>
+    <version>2.6.0</version>
+</dependency>
+
+
+  
+  <dependency>
+    <groupId>edu.stanford.nlp</groupId>
+    <artifactId>stanford-corenlp</artifactId>
+    <version>3.8.0</version>
+</dependency>
+
+
+<dependency>
+    <groupId>edu.stanford.nlp</groupId>
+    <artifactId>stanford-corenlp</artifactId>
+    <version>3.8.0</version>
+    <classifier>models</classifier>
+</dependency>
+  
+  <!-- https://mvnrepository.com/artifact/org.deeplearning4j/deeplearning4j-core -->
+<dependency>
+    <groupId>org.deeplearning4j</groupId>
+    <artifactId>deeplearning4j-core</artifactId>
+    <version>0.8.0</version>
+</dependency>
+  
+  
+  <!-- https://mvnrepository.com/artifact/org.deeplearning4j/deeplearning4j-nlp -->
+<dependency>
+    <groupId>org.deeplearning4j</groupId>
+    <artifactId>deeplearning4j-nlp</artifactId>
+    <version>0.8.0</version>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/org.nd4j/nd4j-native -->
+<dependency>
+    <groupId>org.nd4j</groupId>
+    <artifactId>nd4j-native</artifactId>
+    <version>0.8.0</version>
+</dependency>
+
+  
+  <!-- https://mvnrepository.com/artifact/org.nd4j/nd4j-jblas -->
+<dependency>
+    <groupId>org.nd4j</groupId>
+    <artifactId>nd4j-jblas</artifactId>
+    <version>0.4-rc3.6</version>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/org.nd4j/nd4j-native-platform -->
+<dependency>
+    <groupId>org.nd4j</groupId>
+    <artifactId>nd4j-native-platform</artifactId>
+    <version>0.8.0</version>
+</dependency>
+
+  <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.6</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.6.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.sf.dozer</groupId>
+            <artifactId>dozer</artifactId>
+            <version>5.5.1</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jcl-over-slf4j</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        
+        <dependency>
+			<groupId>org.apache.lucene</groupId>
+		
+			<artifactId>lucene-core</artifactId>
+			<version>5.5.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-analyzers-common</artifactId>
+			<version>5.5.4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.lucene</groupId>
+			<artifactId>lucene-queryparser</artifactId>
+			<version>5.5.4</version>
+		</dependency>
+
+  
+  
+  </dependencies>
+  
+  
+</project>
