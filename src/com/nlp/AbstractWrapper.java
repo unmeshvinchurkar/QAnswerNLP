@@ -1,7 +1,6 @@
 package com.nlp;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +24,22 @@ public abstract class AbstractWrapper {
 
 	public String getNthWord(int index) {
 		return this.getWordString().split(" ")[index];
+	}
+
+	public boolean doWordsHaveSamePos() {
+		return getAllPos().size() <= 1;
+	}
+
+	public boolean doWordsHaveSameNER() {
+		return getAllNER().size() <= 1;
+	}
+
+	public boolean containsSingleWord() {
+		return numOfWords() == 1;
+	}
+
+	public boolean isEmpty() {
+		return numOfWords() == 0;
 	}
 
 	public Collection<String> getAllNER() {
