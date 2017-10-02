@@ -13,12 +13,12 @@ public class VerbWrapper extends AbstractWrapper {
 		this.verb = verb;
 	}
 
-	public boolean isVerb() {
+	public boolean areAllVerbs() {
 		return verb;
 	}
-
-	public void setVerbStr(String verbStr) {
-		this.setWordString(verbStr);
+	
+	public boolean isVerb(){
+		return true;
 	}
 
 	@Override

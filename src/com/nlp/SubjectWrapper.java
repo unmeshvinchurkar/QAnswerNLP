@@ -10,6 +10,10 @@ public class SubjectWrapper extends AbstractWrapper {
 	public SubjectWrapper(Map<String, CoreLabel> tokenMap, String subStr) {
 		super(tokenMap, subStr);
 	}
+	
+	public boolean isSubject(){
+		return true;
+	}
 
 	@Override
 	public int hashCode() {

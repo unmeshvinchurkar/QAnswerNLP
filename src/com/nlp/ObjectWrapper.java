@@ -1,6 +1,5 @@
 package com.nlp;
 
-
 import java.util.Map;
 
 import edu.stanford.nlp.ling.CoreLabel;
@@ -16,6 +15,10 @@ public class ObjectWrapper extends AbstractWrapper {
 
 	public boolean isNoun() {
 		return noun;
+	}
+
+	public boolean isObject() {
+		return true;
 	}
 
 	public void setNoun(boolean noun) {

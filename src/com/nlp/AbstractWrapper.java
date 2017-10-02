@@ -22,6 +22,10 @@ public abstract class AbstractWrapper {
 		this.tokenMap = tokenMap;
 	}
 
+	public String[] getAllWords() {
+		return this.getWordString().split(" ");
+	}
+
 	public String getNthWord(int index) {
 		return this.getWordString().split(" ")[index];
 	}
@@ -138,6 +142,18 @@ public abstract class AbstractWrapper {
 
 	public void setTokenMap(Map<String, CoreLabel> tokenMap) {
 		this.tokenMap = tokenMap;
+	}
+	
+	public boolean isSubject(){
+		return false;
+	}
+	
+	public boolean isVerb(){
+		return false;
+	}
+	
+	public boolean isObject(){
+		return false;
 	}
 
 	@Override
