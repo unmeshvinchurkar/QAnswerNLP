@@ -34,11 +34,10 @@ import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.util.CoreMap;
 
-public class ConceptExtractor {
+public class ConceptExtractor2 {
 
 	public static void main(String[] args) throws IOException {
-		
-		
+
 		PrintWriter out;
 		String rules;
 
@@ -46,9 +45,9 @@ public class ConceptExtractor {
 
 		out = new PrintWriter(System.out);
 
-		Env env =	TokenSequencePattern.getNewEnv();
+		Env env = TokenSequencePattern.getNewEnv();
 		env.setDefaultStringMatchFlags(NodePattern.CASE_INSENSITIVE);
-		
+
 		CoreMapExpressionExtractor<MatchedExpression> extractor = CoreMapExpressionExtractor
 				.createExtractorFromFiles(env, rules);
 
@@ -61,8 +60,6 @@ public class ConceptExtractor {
 		props.put("openie.ignoreaffinity", "false");
 
 		StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-		
-		
 
 		File f = new File("C:\\Users\\unmeshvinchurkar\\Desktop\\sample.txt");
 
@@ -102,7 +99,7 @@ public class ConceptExtractor {
 					// extractor.extractExpressions(sentence);
 
 					Map<String, CoreLabel> tokenMap = new HashMap<>();
-					
+
 					StringBuffer sTxt = new StringBuffer(200);
 
 					for (CoreLabel token : sentence.get(CoreAnnotations.TokensAnnotation.class)) {
@@ -114,12 +111,13 @@ public class ConceptExtractor {
 						String ne = token.get(CoreAnnotations.NamedEntityTagAnnotation.class);
 						String normalized = token.get(CoreAnnotations.NormalizedNamedEntityTagAnnotation.class);
 						// !ne.equals("MISC") &&
-					//	if (!ne.equals("O") && !ne.equals("NUMBER") && !ne.equals("ORGANIZATION")) {
-							tokenMap.put(word.trim().toLowerCase(), token);
-					//	}
-							
-							sTxt.append(word);
-							sTxt.append(" ");
+						// if (!ne.equals("O") && !ne.equals("NUMBER") &&
+						// !ne.equals("ORGANIZATION")) {
+						tokenMap.put(word.trim().toLowerCase(), token);
+						// }
+
+						sTxt.append(word);
+						sTxt.append(" ");
 
 					}
 
@@ -128,7 +126,7 @@ public class ConceptExtractor {
 						Collection<RelationTriple> triples = sentence
 								.get(NaturalLogicAnnotations.RelationTriplesAnnotation.class);
 						// Print the triples
-						
+
 						System.out.println(sTxt.toString());
 
 						if (triples != null)
@@ -136,17 +134,20 @@ public class ConceptExtractor {
 
 								try {
 
-									String sub = parseSubject(triple.subjectLemmaGloss(), tokenMap);
-									String verb = parseVerb(triple.relationLemmaGloss(), tokenMap);
-									String object = parseObj(triple.objectLemmaGloss(), tokenMap);
-									
-									// (sub.trim().equals("") || sub.trim().equals("you")) &&
+									String sub = parseSubject(triple.subjectGloss(), tokenMap);
+									String verb = parseVerb(triple.relationGloss(), triple.relationLemmaGloss(),
+											tokenMap);
+									String object = parseObj(triple.objectGloss(), tokenMap);
 
-									if (true ||  !verb.trim().equals("")
-											&& !object.trim().equals("")) {
-																				
-								   //  System.out.println(sTxt.toString());
-									 System.out.println(sub + " __________  " + verb + " __________ " + object);
+									// (sub.trim().equals("") ||
+									// sub.trim().equals("you")) &&
+
+									if (true || !verb.trim().equals("") && !object.trim().equals("")) {
+
+										// System.out.println(sTxt.toString());
+										if (isValid(sub, verb, object)) {
+											System.out.println(sub + " __________  " + verb + " __________ " + object);
+										}
 
 									}
 
@@ -174,7 +175,12 @@ public class ConceptExtractor {
 								} catch (Exception e) {
 								}
 							}
-						
+						else {
+
+							System.out.println("____________NO TRIPLET______________________");
+
+						}
+
 						System.out.println("_________________________________________________________-----------");
 
 					}
@@ -185,23 +191,40 @@ public class ConceptExtractor {
 		out.flush();
 	}
 
+	private static boolean isValid(String sub, String verb, String obj) {
+
+		sub = sub.trim().toLowerCase();
+		verb = verb.trim().toLowerCase();
+		obj = obj.trim().toLowerCase();
+
+		if (sub.equals("") && obj.equals("")) {
+			return false;
+		} else if (verb.equals("")) {
+			return false;
+		} else if (obj.equals(sub)) {
+			return false;
+		} else if (verb.equals(obj)) {
+			return false;
+		} else if (sub.equals(obj)) {
+			return false;
+		}
+		return true;
+	}
+
 	public static String parseSubject(String sub, Map<String, CoreLabel> tokenMap) {
 
 		StringBuffer sb = new StringBuffer();
-
-		try {
-			sub = removeStopWords(sub);
-		} catch (Exception e) {
-		}
+		sub = removeStopWords(sub);
 
 		String tokens[] = sub.split(" ");
 
 		if (tokens != null) {
 			for (int i = 0; i < tokens.length; i++) {
 
-				String ner = getNER(tokens[i].toLowerCase(), tokenMap);
+				String ner = getNER(tokens[i].toLowerCase(), "", tokenMap);
+				String pos = getPOS(tokens[i].toLowerCase(), "", tokenMap);
 
-				if (isPermitter(ner)) {
+				if (isPermitter(ner) && isNoun(pos)) {
 					sb.append(tokens[i].trim() + " ");
 				}
 			}
@@ -216,43 +239,47 @@ public class ConceptExtractor {
 
 		sub = sub.replaceAll("(^|\\b)(in|you|to)(\\b|$)", "");
 
-		try {
-			sub = removeStopWords(sub);
-		} catch (Exception e) {
-		}
+		sub = removeStopWords(sub);
+		int ii = 0;
 
 		String tokens[] = sub.split(" ");
 
-		if (tokens != null) {
-			for (int i = 0; i < tokens.length; i++) {
-				String ner = getNER(tokens[i].toLowerCase(), tokenMap);
-				if (isPermitter(ner)) {
-					sb.append(tokens[i].trim() + " ");
+		try {
+			if (tokens != null) {
+				for (int i = 0; i < tokens.length; i++) {
+					String ner = getNER(tokens[i].toLowerCase(), "", tokenMap);
+					String pos = getPOS(tokens[i].toLowerCase(), "", tokenMap);
+
+					if (isPermitter(ner) && (isNoun(pos) || isVerb(pos))) {
+						sb.append(tokens[i].trim() + " ");
+					}
 				}
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		if (sb.toString().trim().length() == 0) {
+			int z = 0;
 		}
 
 		return sb.toString();
 	}
 
-	public static String parseVerb(String verbStr, Map<String, CoreLabel> tokenMap) {
+	public static String parseVerb(String verbStr, String lemma, Map<String, CoreLabel> tokenMap) throws Exception {
 
 		StringBuffer sb = new StringBuffer();
-
-//		try {
-//			verbStr = removeStopWords(verbStr);
-//		} catch (Exception e) {
-//		}
 
 		String tokens[] = verbStr.split(" ");
 		int count = 0;
 
 		if (tokens != null) {
 			for (int i = 0; i < tokens.length; i++) {
-				String ner = getNER(tokens[i].toLowerCase(), tokenMap);
+				String ner = getNER(tokens[i].toLowerCase(), lemma, tokenMap);
+				String pos = getPOS(tokens[i], lemma, tokenMap);
 
-				if (!isPermitter(ner)) {
-					if (!isNoun(getPOS(tokens[i], tokenMap))) {
+				if (isPermitter(ner)) {
+					if (isVerb(pos) || isIN(pos)) {
 						sb.append(tokens[i].trim() + " ");
 						count++;
 					}
@@ -262,50 +289,47 @@ public class ConceptExtractor {
 
 		verbStr = sb.toString();
 
-		if (count == 1) {
-			//verbStr = verbStr.replaceAll("(^|\\b)(of|to)($|\\b)", "");
-		} else if (count > 1) {
-			//verbStr = verbStr.replaceAll("(^|\\b)(have|in|on|to|of|for)(\\b|$)", "");
-		}
+		String tokenss[] = verbStr.split(" ");
 
-		//tokens = verbStr.split(" ");
-
-		if (tokens == null || tokens.length == 0) {
+		if ((tokenss == null || tokenss.length == 0) && tokens.length >= 1) {
+			return tokenss[0];
+		} else if ((tokenss == null || tokens.length == 0)) {
 			return "";
-		} else if (tokens.length == 1) {
-			return tokens[0];
-		} else if (tokens.length == 2) {
-			return tokens[0] + " " + tokens[1];
+		} else if (tokenss.length == 1) {
+			return tokenss[0];
+		} else {
+			String str = removeStopWords(verbStr);
+			// return tokenss[0] ;
+
+			if (str.trim().equals("")) {
+
+				str = str;
+			}
+
+			return str;
 		}
-		return tokens[0] + " " + tokens[1] + " " + tokens[2];
 	}
 
-	public static String removeStopWords(String textFile) throws Exception {
+	public static String removeStopWords(String textFile) {
 
 		if (textFile == null)
 			return "";
 
-		List<String> stopWords = Arrays.asList("a", "an", "and", "are", "as", "but", "if", "into", "no", "or", "such",
-				"the", "their", "then", "there", "they", "was", "will", "with");
+		List<String> stopWords = Arrays.asList("a", "an", "and", "are", "as", "but", "if", "or", "such", "the", "their",
+				"then", "there", "they", "was", "will", "through");
 
 		CharArraySet stopSet = new CharArraySet(stopWords, true);
 
-		stopSet.add("you");
+		stopSet.add("is");
+		stopSet.add("was");
+		stopSet.add("were");
 		stopSet.add("its");
-		stopSet.add("often");
-		
-		stopSet.add("over");
 		stopSet.add("your");
-		stopSet.add("see");
-		stopSet.add("check");
 		stopSet.add("therefore");
-		stopSet.add("space");
 		stopSet.add("none");
 		stopSet.add("only");
-		stopSet.add("create");
 		stopSet.add("may");
 		stopSet.add("more");
-		stopSet.add("plus");
 		stopSet.add("1");
 		stopSet.add("2");
 		stopSet.add("3");
@@ -317,84 +341,30 @@ public class ConceptExtractor {
 		stopSet.add("9");
 		stopSet.add("0");
 		stopSet.add("so");
-		stopSet.add("false");
-		stopSet.add("attempt");
-		stopSet.add("first");
-		stopSet.add("add");
-		stopSet.add("none");
 		stopSet.add("also");
-		stopSet.add("proior");
 		stopSet.add("how");
 		stopSet.add("least");
-		stopSet.add("from");
-		stopSet.add("continue");
 		stopSet.add("example");
-		stopSet.add("append");
-		stopSet.add("copy");
-		stopSet.add("way");
 		stopSet.add("astrix");
-		stopSet.add("contact");
-		stopSet.add("expect");
 		stopSet.add("still");
-		stopSet.add("relate");
 		stopSet.add("always");
 		stopSet.add("user");
-		//stopSet.add("can");
-		// stopSet.add("it");
-		stopSet.add("need");
-		stopSet.add("b");
-		stopSet.add("be");
-		stopSet.add("select");
-		stopSet.add("could");
+		stopSet.add("it");
 		stopSet.add("notes");
 		stopSet.add("should");
 		stopSet.add("when");
-		stopSet.add("tip");
-		stopSet.add("know");
-		stopSet.remove("note");
-		stopSet.add("customer");
 		stopSet.add("about");
-		stopSet.add("assess");
 		stopSet.add("opinion");
-		stopSet.add("must");
-		stopSet.add("behave");
 		stopSet.add("also");
-		stopSet.add("want");
-		stopSet.add("one");
 		stopSet.add("following");
 		stopSet.add("however");
 		stopSet.add("just");
-		stopSet.add("tutorial");
 		stopSet.add("sure");
-		stopSet.add("select");
-		stopSet.add("upon");
 		stopSet.add("already");
-		stopSet.add("some");
-		stopSet.add("card");
-		stopSet.add("credit");
-		stopSet.add("tutorial");
-		stopSet.add("tutorials");
-		stopSet.add("confidential");
-		stopSet.add("simple");
-		stopSet.add("erase");
-		stopSet.add("must");
-
-		stopSet.remove("by");
-		stopSet.remove("in");
-		stopSet.remove("with");
-		//stopSet.remove("not");
-		stopSet.remove("to");
-		stopSet.remove("with");
 		stopSet.remove("it");
 		stopSet.remove("its");
 		stopSet.remove("this");
 		stopSet.remove("that");
-		stopSet.remove("is");
-		stopSet.remove("at");
-		stopSet.remove("on");
-		stopSet.remove("try");
-		stopSet.remove("be");
-		stopSet.remove("of");
 
 		AttributeFactory factory = AttributeFactory.DEFAULT_ATTRIBUTE_FACTORY;
 
@@ -405,10 +375,16 @@ public class ConceptExtractor {
 		tokenStream = new StopFilter(tokenStream, stopSet);
 		StringBuilder sb = new StringBuilder();
 		CharTermAttribute charTermAttribute = tokenStream.addAttribute(CharTermAttribute.class);
-		tokenStream.reset();
-		while (tokenStream.incrementToken()) {
-			String term = charTermAttribute.toString();
-			sb.append(term + " ");
+		try {
+			tokenStream.reset();
+
+			while (tokenStream.incrementToken()) {
+				String term = charTermAttribute.toString();
+				sb.append(term + " ");
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		return sb.toString().trim();
 	}
@@ -416,36 +392,64 @@ public class ConceptExtractor {
 	private static boolean isPermitter(String ner) {
 		// !ne.equals("MISC") &&
 		// !ner.equals("O") &&
-		//&& !ner.equals("ORGANIZATION")
-		if ( !ner.equals("NUMBER") ) {
+		// && !ner.equals("ORGANIZATION")
+		if (!ner.equals("NUMBER")) {
 			return true;
 		}
 		return false;
 	}
 
-	private static String getPOS(String word, Map<String, CoreLabel> tokenMap) {
+	private static String getPOS(String word, String lemma, Map<String, CoreLabel> tokenMap) {
 		if (word == null) {
 			return "";
 		}
-		CoreLabel token = tokenMap.get(word.trim());
+		CoreLabel token = tokenMap.get(word.trim().toLowerCase());
+
+		if (token == null) {
+			return "";
+		}
+
 		String pos = token.get(CoreAnnotations.PartOfSpeechAnnotation.class);
 		return pos;
 	}
 
-	private static String getNER(String word, Map<String, CoreLabel> tokenMap) {
+	private static String getNER(String word, String lemma, Map<String, CoreLabel> tokenMap) {
 		if (word == null) {
 			return "";
 		}
-		CoreLabel token = tokenMap.get(word.trim());
+		CoreLabel token = tokenMap.get(word.trim().toLowerCase());
+
+		if (token == null) {
+			if (tokenMap.get(lemma) == null) {
+				return "";
+			} else {
+				token = tokenMap.get(lemma);
+			}
+		}
+
 		String ner = token.get(CoreAnnotations.NamedEntityTagAnnotation.class);
-		
-		//System.out.println(word + " : "+ner);
+
+		// System.out.println(word + " : "+ner);
 		return ner;
+	}
+
+	private static boolean isVerb(String wordType) {
+		return wordType.equalsIgnoreCase("VB") || wordType.equalsIgnoreCase("VBD") || wordType.equalsIgnoreCase("VBG")
+				|| wordType.equalsIgnoreCase("VBN") || wordType.equalsIgnoreCase("VBP")
+				|| wordType.equalsIgnoreCase("VBZ") ;
+	}
+	
+	private static boolean isIN(String wordType) {
+		return  wordType.equalsIgnoreCase("IN");
+	}
+
+	private static boolean isAdjective(String wordType) {
+		return wordType.equalsIgnoreCase("JJ") || wordType.equalsIgnoreCase("JJR") || wordType.equalsIgnoreCase("JJS");
 	}
 
 	private static boolean isNoun(String pos) {
 		return pos.equalsIgnoreCase("NN") || pos.equalsIgnoreCase("NNP") || pos.equalsIgnoreCase("NNPS")
-				|| pos.equalsIgnoreCase("NNS");
+				|| pos.equalsIgnoreCase("NNS") || pos.equalsIgnoreCase("PRP");
 	}
 
 }
