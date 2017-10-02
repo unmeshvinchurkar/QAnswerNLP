@@ -140,4 +140,9 @@ public abstract class AbstractWrapper {
 		this.tokenMap = tokenMap;
 	}
 
+	@Override
+	public String toString() {
+		return this.getClass().getName() + "[word=" + wordString + "]";
+	}
+
 }
