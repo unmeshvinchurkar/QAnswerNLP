@@ -10,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 
 import edu.stanford.nlp.ling.CoreLabel;
-import net.didion.jwnl.data.Verb;
 
 public class DependencyExtractor {
 
@@ -140,8 +139,8 @@ public class DependencyExtractor {
 			Set<String> nouns = adj_noun_map.get(adj);
 
 			for (String noun : nouns) {
-				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, false, adj),
-						new ObjectWrapper(tokenMap, true, noun));
+				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, false, getWord(adj)),
+						new ObjectWrapper(tokenMap, true, getWord(noun)));
 				concepts.add(concept);
 			}
 		}
@@ -152,8 +151,8 @@ public class DependencyExtractor {
 			Set<String> nouns = verb_in_noun_map.get(verb);
 
 			for (String noun : nouns) {
-				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, true, verb),
-						new ObjectWrapper(tokenMap, true, noun));
+				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, true, getWord(verb)),
+						new ObjectWrapper(tokenMap, true, getWord(noun)));
 				concepts.add(concept);
 			}
 		}
@@ -164,8 +163,8 @@ public class DependencyExtractor {
 			Set<String> verbs = verb_verb_map.get(verb);
 
 			for (String v : verbs) {
-				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, true, verb),
-						new ObjectWrapper(tokenMap, false, v));
+				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, true, getWord(verb)),
+						new ObjectWrapper(tokenMap, false, getWord(v)));
 				concepts.add(concept);
 			}
 		}
@@ -182,16 +181,17 @@ public class DependencyExtractor {
 
 				for (String sub : subjs) {
 					for (String obj : objs) {
-						Concept concept = new Concept(new SubjectWrapper(tokenMap, sub),
-								new VerbWrapper(tokenMap, true, verb), new ObjectWrapper(tokenMap, true, obj));
+						Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(sub)),
+								new VerbWrapper(tokenMap, true, getWord(verb)),
+								new ObjectWrapper(tokenMap, true, getWord(obj)));
 						concepts.add(concept);
 					}
 				}
 			} else {
 
 				for (String sub : subjs) {
-					Concept concept = new Concept(new SubjectWrapper(tokenMap, sub),
-							new VerbWrapper(tokenMap, true, verb));
+					Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(sub)),
+							new VerbWrapper(tokenMap, true, getWord(verb)));
 					concepts.add(concept);
 				}
 			}
@@ -204,8 +204,8 @@ public class DependencyExtractor {
 			Set<String> objs = verb_Object.get(verb);
 
 			for (String obj : objs) {
-				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, true, verb),
-						new ObjectWrapper(tokenMap, true, obj));
+				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, true, getWord(verb)),
+						new ObjectWrapper(tokenMap, true, getWord(obj)));
 				concepts.add(concept);
 			}
 		}
@@ -240,7 +240,11 @@ public class DependencyExtractor {
 
 	public static String getWord(String word) {
 		int i = word.indexOf("-");
-		return word.substring(0, i);
+
+		if (i > 0) {
+			return word.substring(0, i);
+		}
+		return word;
 	}
 
 	private String[] getPair(String dependency) {

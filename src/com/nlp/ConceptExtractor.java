@@ -93,9 +93,9 @@ public class ConceptExtractor {
 
 					try {
 
-						String sub = parseSubject(triple.subjectGloss(), tokenMap).getWordString();
+						String sub = parseSubject(triple.subjectGloss(), triple.subjectLemmaGloss(), tokenMap).getWordString();
 						String verb = parseVerb(triple.relationGloss(), triple.relationLemmaGloss(), tokenMap).getWordString();
-						String object = parseObj(triple.objectGloss(), tokenMap).getWordString();
+						String object = parseObj(triple.objectGloss(), triple.subjectLemmaGloss(), tokenMap).getWordString();
 
 						// System.out.println(sTxt.toString());
 						if (isValid(sub, verb, object)) {
@@ -133,7 +133,7 @@ public class ConceptExtractor {
 		return true;
 	}
 
-	public static SubjectWrapper parseSubject(String sub, Map<String, CoreLabel> tokenMap) {
+	public static SubjectWrapper parseSubject(String sub, String lemmaStr, Map<String, CoreLabel> tokenMap) {
 
 		StringBuffer sb = new StringBuffer();
 		sub = removeStopWords(sub);
@@ -155,7 +155,7 @@ public class ConceptExtractor {
 		return new SubjectWrapper(tokenMap, sb.toString());
 	}
 
-	public static ObjectWrapper parseObj(String sub, Map<String, CoreLabel> tokenMap) {
+	public static ObjectWrapper parseObj(String sub,String lemmaStr, Map<String, CoreLabel> tokenMap) {
 
 		StringBuffer sb = new StringBuffer();
 
