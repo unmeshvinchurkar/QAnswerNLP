@@ -93,9 +93,9 @@ public class ConceptExtractor {
 
 					try {
 
-						String sub = parseSubject(triple.subjectGloss(), tokenMap).getSubStr();
-						String verb = parseVerb(triple.relationGloss(), triple.relationLemmaGloss(), tokenMap).getVerbStr();
-						String object = parseObj(triple.objectGloss(), tokenMap).getObjStr();
+						String sub = parseSubject(triple.subjectGloss(), tokenMap).getWordString();
+						String verb = parseVerb(triple.relationGloss(), triple.relationLemmaGloss(), tokenMap).getWordString();
+						String object = parseObj(triple.objectGloss(), tokenMap).getWordString();
 
 						// System.out.println(sTxt.toString());
 						if (isValid(sub, verb, object)) {

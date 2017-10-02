@@ -1,14 +1,11 @@
 package com.nlp;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
-import edu.stanford.nlp.ling.CoreAnnotations;
+import java.util.Map;
+
 import edu.stanford.nlp.ling.CoreLabel;
 
-public class ObjectWrapper  extends WordWrapper{
+public class ObjectWrapper extends AbstractWrapper {
 
 	private boolean noun = true;
 
@@ -17,63 +14,12 @@ public class ObjectWrapper  extends WordWrapper{
 		this.noun = noun;
 	}
 
-	public String getPos(int index) {
-
-		String word = getNthWord(index);
-		CoreLabel token = this.getTokenMap().get(word.trim().toLowerCase());
-
-		if (token == null) {
-			return "";
-		}
-
-		return token.get(CoreAnnotations.PartOfSpeechAnnotation.class);
-	}
-
-	public String getNER(int index) {
-		String word = getNthWord(index);
-		CoreLabel token = this.getTokenMap().get(word.trim().toLowerCase());
-
-		if (token == null) {
-			return "";
-		}
-
-		String ner = token.get(CoreAnnotations.NamedEntityTagAnnotation.class);
-		return ner;
-	}
-
-	public String getNthWord(int index) {
-		return this.getWordString().split(" ")[index];
-	}
-
-	public Collection<String> getAllNER() {
-
-		int num = numOfWords();
-		Set<String> ners = new HashSet<String>();
-
-		for (int i = 0; i < num; i++) {
-			ners.add(getNER(i));
-		}
-		return ners;
-	}
-
-	public int numOfWords() {
-		return this.getWordString().split(" ").length;
-	}
-
 	public boolean isNoun() {
 		return noun;
 	}
 
 	public void setNoun(boolean noun) {
 		this.noun = noun;
-	}
-
-	public String getObjStr() {
-		return this.getWordString();
-	}
-
-	public void setObjStr(String objStr) {
-		this.setWordString(objStr);
 	}
 
 	@Override

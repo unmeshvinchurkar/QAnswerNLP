@@ -2,10 +2,9 @@ package com.nlp;
 
 import java.util.Map;
 
-import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 
-public class VerbWrapper extends WordWrapper{
+public class VerbWrapper extends AbstractWrapper {
 
 	private boolean verb = false;
 
@@ -14,48 +13,8 @@ public class VerbWrapper extends WordWrapper{
 		this.verb = verb;
 	}
 
-	public String getPos(int index) {
-
-		String word = getNthWord(index);
-		CoreLabel token = this.getTokenMap().get(word.trim().toLowerCase());
-
-		if (token == null) {
-			return "";
-		}
-
-		return token.get(CoreAnnotations.PartOfSpeechAnnotation.class);
-	}
-	
-	public String getNER(int index) {
-		String word = getNthWord(index);
-		CoreLabel token = this.getTokenMap().get(word.trim().toLowerCase());
-
-		if (token == null) {
-			return "";
-		}
-
-		String ner = token.get(CoreAnnotations.NamedEntityTagAnnotation.class);
-		return ner;
-	}
-
-	public String getNthWord(int index) {
-		return this.getWordString().split(" ")[index];
-	}
-
-	public int numOfWords() {
-		return this.getWordString().split(" ").length;
-	}
-
 	public boolean isVerb() {
 		return verb;
-	}
-
-	public void setVerb(boolean verb) {
-		this.verb = verb;
-	}
-
-	public String getVerbStr() {
-		return this.getWordString();
 	}
 
 	public void setVerbStr(String verbStr) {
