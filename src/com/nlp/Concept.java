@@ -2,42 +2,42 @@ package com.nlp;
 
 public class Concept {
 
-	private String subject;
-	private String verb;
-	private String object;
+	private AbstractWrapper subject;
+	private AbstractWrapper verb;
+	private AbstractWrapper object;
 
-	public Concept(String subject, String verb) {
+	public Concept(AbstractWrapper subject, AbstractWrapper verb) {
 		this.subject = subject;
 		this.verb = verb;
 	}
 
-	public Concept(String subject, String verb, String object) {
+	public Concept(AbstractWrapper subject, AbstractWrapper verb, AbstractWrapper object) {
 		this.subject = subject;
 		this.verb = verb;
 		this.object = object;
 	}
 
-	public String getSubject() {
+	public AbstractWrapper getSubject() {
 		return subject;
 	}
 
-	public void setSubject(String subject) {
+	public void setSubject(AbstractWrapper subject) {
 		this.subject = subject;
 	}
 
-	public String getVerb() {
+	public AbstractWrapper getVerb() {
 		return verb;
 	}
 
-	public void setVerb(String verb) {
+	public void setVerb(AbstractWrapper verb) {
 		this.verb = verb;
 	}
 
-	public String getObject() {
+	public AbstractWrapper getObject() {
 		return object;
 	}
 
-	public void setObject(String object) {
+	public void setObject(AbstractWrapper object) {
 		this.object = object;
 	}
 
@@ -71,21 +71,21 @@ public class Concept {
 
 		String str = "";
 
-		if (subject != null || subject.length() > 0) {
-			str = subject;
+		if (subject != null || subject.getWordString().length() > 0) {
+			str = subject.getWordString();
 		}
 
-		if (verb != null || verb.length() > 0) {
+		if (verb != null || verb.getWordString().length() > 0) {
 			
 			if (str.length() > 0) {
-				str = "-" + verb;
+				str = "-" + verb.getWordString();
 			} else {
-				str = verb;
+				str = verb.getWordString();
 			}
 		}
 
-		if (object != null || object.length() > 0) {
-			str = "-" + object;
+		if (object != null || object.getWordString().length() > 0) {
+			str = "-" + object.getWordString();
 		}
 
 		return str;

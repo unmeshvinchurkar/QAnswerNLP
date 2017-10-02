@@ -5,8 +5,12 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+
+import edu.stanford.nlp.ling.CoreLabel;
+import net.didion.jwnl.data.Verb;
 
 public class DependencyExtractor {
 
@@ -20,6 +24,10 @@ public class DependencyExtractor {
 	public static String VB_IN_NOUN = "nmod"; // recorded in India
 	public static String COMPOUND_WORDS = "compound";
 
+	private Map<String, CoreLabel> tokenMap = null;
+
+	private Set<Concept> concepts = new LinkedHashSet<>();
+
 	private Map<String, Set<String>> verb_Subject = new HashMap<>();
 	private Map<String, Set<String>> verb_Object = new HashMap<>();
 
@@ -29,7 +37,8 @@ public class DependencyExtractor {
 
 	private Map<String, Set<String>> compoundWords = new HashMap<>();
 
-	public DependencyExtractor() {
+	public DependencyExtractor(Map<String, CoreLabel> tokenMap) {
+		this.tokenMap = tokenMap;
 
 	}
 
@@ -123,6 +132,83 @@ public class DependencyExtractor {
 
 	public void generateConcepts() {
 
+		AbstractWrapper nul = null;
+
+		Set<String> keys = adj_noun_map.keySet();
+
+		for (String adj : keys) {
+			Set<String> nouns = adj_noun_map.get(adj);
+
+			for (String noun : nouns) {
+				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, false, adj),
+						new ObjectWrapper(tokenMap, true, noun));
+				concepts.add(concept);
+			}
+		}
+
+		keys = verb_in_noun_map.keySet();
+
+		for (String verb : keys) {
+			Set<String> nouns = verb_in_noun_map.get(verb);
+
+			for (String noun : nouns) {
+				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, true, verb),
+						new ObjectWrapper(tokenMap, true, noun));
+				concepts.add(concept);
+			}
+		}
+
+		keys = verb_verb_map.keySet();
+
+		for (String verb : keys) {
+			Set<String> verbs = verb_verb_map.get(verb);
+
+			for (String v : verbs) {
+				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, true, verb),
+						new ObjectWrapper(tokenMap, false, v));
+				concepts.add(concept);
+			}
+		}
+
+		keys = verb_Subject.keySet();
+
+		for (String verb : keys) {
+
+			Set<String> subjs = verb_Subject.remove(verb);
+
+			if (verb_Object.containsKey(verb)) {
+
+				Set<String> objs = verb_Object.remove(verb);
+
+				for (String sub : subjs) {
+					for (String obj : objs) {
+						Concept concept = new Concept(new SubjectWrapper(tokenMap, sub),
+								new VerbWrapper(tokenMap, true, verb), new ObjectWrapper(tokenMap, true, obj));
+						concepts.add(concept);
+					}
+				}
+			} else {
+
+				for (String sub : subjs) {
+					Concept concept = new Concept(new SubjectWrapper(tokenMap, sub),
+							new VerbWrapper(tokenMap, true, verb));
+					concepts.add(concept);
+				}
+			}
+		}
+
+		keys = verb_Object.keySet();
+
+		for (String verb : keys) {
+
+			Set<String> objs = verb_Object.get(verb);
+
+			for (String obj : objs) {
+				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, true, verb),
+						new ObjectWrapper(tokenMap, true, obj));
+				concepts.add(concept);
+			}
+		}
 	}
 
 	public boolean areCompoundWords(String w1, String w2) {

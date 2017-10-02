@@ -46,6 +46,13 @@ public abstract class AbstractWrapper {
 		return numOfWords() == 0;
 	}
 
+	public String getLemma(String word) {		 
+		word = getWord(word);
+		CoreLabel token = tokenMap.get(word);
+		String lemma = token.get(CoreAnnotations.LemmaAnnotation.class);
+		return lemma;
+	}
+
 	public Collection<String> getAllNER() {
 
 		int num = numOfWords();
@@ -143,16 +150,30 @@ public abstract class AbstractWrapper {
 	public void setTokenMap(Map<String, CoreLabel> tokenMap) {
 		this.tokenMap = tokenMap;
 	}
-	
-	public boolean isSubject(){
+
+	public static int getIndex(String word) {
+		int i = word.indexOf("-");
+		return Integer.valueOf(word.substring(i + 1));
+	}
+
+	public static String getWord(String word) {
+		int i = word.indexOf("-");
+
+		if (i > 0) {
+			return word.substring(0, i);
+		}
+		return word;
+	}
+
+	public boolean isSubject() {
 		return false;
 	}
-	
-	public boolean isVerb(){
+
+	public boolean isVerb() {
 		return false;
 	}
-	
-	public boolean isObject(){
+
+	public boolean isObject() {
 		return false;
 	}
 
