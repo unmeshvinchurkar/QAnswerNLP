@@ -20,7 +20,8 @@ public class DependencyExtractor {
 	public static String VERB_VERB_PHRASE = "xcomp";
 	public static String TIME_MOD = "tmod";
 	public static String ADJ_NOUN = "amod";
-	public static String VB_IN_NOUN = "nmod"; // recorded in India
+	public static String VB_IN_NOUN = "nmod:in"; // recorded in India
+	public static String VB_OF_NOUN = "nmod:of";
 	public static String COMPOUND_WORDS = "compound";
 
 	private Map<String, CoreLabel> tokenMap = null;
@@ -31,6 +32,7 @@ public class DependencyExtractor {
 	private Map<String, Set<String>> verb_Object = new HashMap<>();
 
 	private Map<String, Set<String>> verb_in_noun_map = new HashMap<>();
+	private Map<String, Set<String>> noun_of_noun_map = new HashMap<>();
 	private Map<String, Set<String>> adj_noun_map = new HashMap<>();
 	private Map<String, Set<String>> verb_verb_map = new HashMap<>();
 
@@ -41,92 +43,112 @@ public class DependencyExtractor {
 
 	}
 
-	public void extractDependencies(String collapsedDeps) throws IOException {
+	public void extractDependencies(String collapsedDeps) {
 
-		BufferedReader bufReader = new BufferedReader(new StringReader(collapsedDeps));
+		try {
+			BufferedReader bufReader = new BufferedReader(new StringReader(collapsedDeps));
 
-		String line = null;
-		while ((line = bufReader.readLine()) != null) {
+			String line = null;
+			while ((line = bufReader.readLine()) != null) {
 
-			if (line.startsWith(SUBJECT)) {
-				String verb_noun[] = getPair(line);
+				if (line.startsWith(SUBJECT)) {
+					String verb_noun[] = getPair(line);
 
-				Set<String> set = verb_Subject.get(verb_noun[0]);
+					Set<String> set = verb_Subject.get(verb_noun[0]);
 
-				if (set == null) {
-					set = new HashSet<>();
-					verb_Subject.put(verb_noun[0], set);
-				}
-
-				set.add(verb_noun[1]);
-
-			} else if (line.startsWith(OBJECT)) {
-
-				String verb_noun[] = getPair(line);
-
-				Set<String> set = verb_Object.get(verb_noun[0]);
-				if (set == null) {
-					set = new HashSet<>();
-					verb_Object.put(verb_noun[0], set);
-				}
-				set.add(verb_noun[1]);
-
-			} else if (line.startsWith(VB_IN_NOUN) || line.startsWith(IN)) {
-				String verb_noun[] = getPair(line);
-
-				Set<String> set = verb_in_noun_map.get(verb_noun[0]);
-				if (set == null) {
-					set = new HashSet<>();
-					verb_in_noun_map.put(verb_noun[0], set);
-				}
-				set.add(verb_noun[1]);
-
-			} else if (line.startsWith(ADJ_NOUN)) {
-				String adj_noun[] = getPair(line);
-
-				Set<String> set = adj_noun_map.get(adj_noun[0]);
-				if (set == null) {
-					set = new HashSet<>();
-					adj_noun_map.put(adj_noun[0], set);
-				}
-				set.add(adj_noun[1]);
-			}
-
-			else if (line.startsWith(VERB_VERB_PHRASE)) {
-
-				String verb_verb[] = getPair(line);
-
-				Set<String> set = verb_verb_map.get(verb_verb[0]);
-				if (set == null) {
-					set = new HashSet<>();
-					verb_verb_map.put(verb_verb[0], set);
-				}
-				set.add(verb_verb[1]);
-
-			} else if (line.startsWith(COMPOUND_WORDS)) {
-				String word_word[] = getPair(line);
-
-				if (getIndex(word_word[0]) < getIndex(word_word[1])) {
-
-					Set<String> set = compoundWords.get(word_word[0]);
 					if (set == null) {
 						set = new HashSet<>();
-						compoundWords.put(word_word[0], set);
+						verb_Subject.put(verb_noun[0], set);
 					}
-					set.add(word_word[0] + " " + word_word[1]);
-				} else {
 
-					Set<String> set = compoundWords.get(word_word[1]);
+					set.add(verb_noun[1]);
+
+				} else if (line.startsWith(OBJECT)) {
+
+					String verb_noun[] = getPair(line);
+
+					Set<String> set = verb_Object.get(verb_noun[0]);
 					if (set == null) {
 						set = new HashSet<>();
-						compoundWords.put(word_word[1], set);
+						verb_Object.put(verb_noun[0], set);
 					}
-					set.add(word_word[1] + " " + word_word[0]);
+					set.add(verb_noun[1]);
+
+				} else if (line.startsWith(VB_IN_NOUN) || line.startsWith(IN)) {
+					String verb_noun[] = getPair(line);
+
+					Set<String> set = verb_in_noun_map.get(verb_noun[0]);
+					if (set == null) {
+						set = new HashSet<>();
+						verb_in_noun_map.put(verb_noun[0], set);
+					}
+					set.add(verb_noun[1]);
+
+				}
+				
+				else if (line.startsWith(VB_OF_NOUN)) {
+					String noun_noun[] = getPair(line);
+
+					Set<String> set = noun_of_noun_map.get(noun_noun[0]);
+					if (set == null) {
+						set = new HashSet<>();
+						noun_of_noun_map.put(noun_noun[0], set);
+					}
+					set.add(noun_noun[1]);
+
+				}
+				
+				else if (line.startsWith(ADJ_NOUN)) {
+					String adj_noun[] = getPair(line);
+
+					Set<String> set = adj_noun_map.get(adj_noun[0]);
+					if (set == null) {
+						set = new HashSet<>();
+						adj_noun_map.put(adj_noun[0], set);
+					}
+					set.add(adj_noun[1]);
+				}
+
+				else if (line.startsWith(VERB_VERB_PHRASE)) {
+
+					String verb_verb[] = getPair(line);
+
+					Set<String> set = verb_verb_map.get(verb_verb[0]);
+					if (set == null) {
+						set = new HashSet<>();
+						verb_verb_map.put(verb_verb[0], set);
+					}
+					set.add(verb_verb[1]);
+
+				} else if (line.startsWith(COMPOUND_WORDS)) {
+					String word_word[] = getPair(line);
+
+					if (getIndex(word_word[0]) < getIndex(word_word[1])) {
+
+						Set<String> set = compoundWords.get(getWord(word_word[0]));
+						if (set == null) {
+							set = new HashSet<>();
+							compoundWords.put(getWord(word_word[0]), set);
+						}
+						set.add(getWord(word_word[0]) + " " + getWord(word_word[1]));
+					} else {
+
+						Set<String> set = compoundWords.get(getWord(word_word[1]));
+						if (set == null) {
+							set = new HashSet<>();
+							compoundWords.put(getWord(word_word[1]), set);
+						}
+						set.add(getWord(word_word[1]) + " " + getWord(word_word[0]));
+					}
 				}
 			}
+
+			bufReader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
-		bufReader.close();
+		generateConcepts();
 	}
 
 	public void generateConcepts() {
@@ -156,6 +178,20 @@ public class DependencyExtractor {
 				concepts.add(concept);
 			}
 		}
+		
+		
+		keys = noun_of_noun_map.keySet();
+
+		for (String noun : keys) {
+			Set<String> nouns = noun_of_noun_map.get(noun);
+
+			for (String noun1 : nouns) {
+				Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(noun)), new VerbWrapper(tokenMap, true, "of"),
+						new ObjectWrapper(tokenMap, true, getWord(noun1)));
+				concepts.add(concept);
+			}
+		}
+		
 
 		keys = verb_verb_map.keySet();
 
