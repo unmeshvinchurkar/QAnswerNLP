@@ -71,21 +71,21 @@ public class Concept {
 
 		String str = "";
 
-		if (subject != null || subject.getWordString().length() > 0) {
+		if (subject != null && subject.getWordString().length() > 0) {
 			str = subject.getWordString();
 		}
 
-		if (verb != null || verb.getWordString().length() > 0) {
+		if (verb != null && verb.getWordString().length() > 0) {
 			
 			if (str.length() > 0) {
-				str = "-" + verb.getWordString();
+				str = str + "-" + verb.getWordString();
 			} else {
 				str = verb.getWordString();
 			}
 		}
 
-		if (object != null || object.getWordString().length() > 0) {
-			str = "-" + object.getWordString();
+		if (object != null && object.getWordString().length() > 0) {
+			str = str+ "-" + object.getWordString();
 		}
 
 		return str;

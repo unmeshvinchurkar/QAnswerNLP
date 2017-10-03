@@ -36,7 +36,7 @@ public class DependencyExtractor {
 	private Map<String, Set<String>> verb_Object = new HashMap<>();
 
 	// "nmod:in"
-	private Map<String, Set<String>> verb_in_noun_map = new HashMap<>();
+	private Map<String, Set<String>> noun_in_noun_map = new HashMap<>();
 
 	// "nmod:of"
 	private Map<String, Set<String>> noun_of_noun_map = new HashMap<>();
@@ -48,7 +48,7 @@ public class DependencyExtractor {
 	private Map<String, Set<String>> verb_verb_map = new HashMap<>();
 
 	// acl
-	private Map<String, Set<String>> noun_verb_map = new HashMap<>();
+	private Map<String, Set<String>> verb_noun_map = new HashMap<>();
 
 	private Map<String, Set<String>> compoundWords = new HashMap<>();
 
@@ -68,11 +68,11 @@ public class DependencyExtractor {
 				if (line.startsWith(NOUN_VERB)) {
 					String verb_noun[] = getPair(line);
 
-					Set<String> set = noun_verb_map.get(verb_noun[0]);
+					Set<String> set = verb_noun_map.get(verb_noun[0]);
 
 					if (set == null) {
 						set = new HashSet<>();
-						noun_verb_map.put(verb_noun[0], set);
+						verb_noun_map.put(verb_noun[0], set);
 					}
 
 					set.add(verb_noun[1]);
@@ -105,10 +105,10 @@ public class DependencyExtractor {
 				} else if (line.startsWith(VB_IN_NOUN) || line.startsWith(IN)) {
 					String verb_noun[] = getPair(line);
 
-					Set<String> set = verb_in_noun_map.get(verb_noun[0]);
+					Set<String> set = noun_in_noun_map.get(verb_noun[0]);
 					if (set == null) {
 						set = new HashSet<>();
-						verb_in_noun_map.put(verb_noun[0], set);
+						noun_in_noun_map.put(verb_noun[0], set);
 					}
 					set.add(verb_noun[1]);
 
@@ -129,12 +129,12 @@ public class DependencyExtractor {
 				else if (line.startsWith(ADJ_NOUN)) {
 					String adj_noun[] = getPair(line);
 
-					Set<String> set = adj_noun_map.get(adj_noun[0]);
+					Set<String> set = adj_noun_map.get(adj_noun[1]);
 					if (set == null) {
 						set = new HashSet<>();
-						adj_noun_map.put(adj_noun[0], set);
+						adj_noun_map.put(adj_noun[1], set);
 					}
-					set.add(adj_noun[1]);
+					set.add(adj_noun[0]);
 				}
 
 				else if (line.startsWith(VERB_VERB_PHRASE)) {
@@ -197,26 +197,26 @@ public class DependencyExtractor {
 			}
 		}
 
-		keys = verb_in_noun_map.keySet();
+		keys = noun_in_noun_map.keySet();
 
-		for (String verb : keys) {
-			Set<String> nouns = verb_in_noun_map.get(verb);
+		for (String noun : keys) {
+			Set<String> nouns = noun_in_noun_map.get(noun);
 
-			for (String noun : nouns) {
-				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, true, getWord(verb)),
-						new ObjectWrapper(tokenMap, true, getWord(noun)));
+			for (String noun1 : nouns) {
+				Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(noun)), new VerbWrapper(tokenMap, true, getWord("in")),
+						new ObjectWrapper(tokenMap, true, getWord(noun1)));
 				concepts.add(concept);
 			}
 		}
 
-		keys = noun_verb_map.keySet();
+		keys = verb_noun_map.keySet();
 
 		for (String noun : keys) {
-			Set<String> verbs = noun_verb_map.get(noun);
+			Set<String> verbs = verb_noun_map.get(noun);
 
 			for (String verb : verbs) {
-				Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(noun)),
-						new VerbWrapper(tokenMap, true, verb), nul);
+				Concept concept = new Concept(nul,
+						new VerbWrapper(tokenMap, true, getWord(verb)), new ObjectWrapper(tokenMap, true, getWord(noun)));
 				concepts.add(concept);
 			}
 		}
@@ -244,16 +244,23 @@ public class DependencyExtractor {
 				concepts.add(concept);
 			}
 		}
+		
+		
+		Set<String> toBeRemovedSub = new HashSet<>();
+		Set<String> toBeRemovedObj = new HashSet<>();
 
 		keys = verb_Subject.keySet();
 
 		for (String verb : keys) {
 
-			Set<String> subjs = verb_Subject.remove(verb);
+			Set<String> subjs = verb_Subject.get(verb);
+			
+			toBeRemovedSub.add(verb);
 
 			if (verb_Object.containsKey(verb)) {
 
-				Set<String> objs = verb_Object.remove(verb);
+				Set<String> objs = verb_Object.get(verb);
+				toBeRemovedObj.add(verb);
 
 				for (String sub : subjs) {
 					for (String obj : objs) {
@@ -271,6 +278,10 @@ public class DependencyExtractor {
 					concepts.add(concept);
 				}
 			}
+		}
+
+		for (String k : toBeRemovedObj) {
+			verb_Object.remove(k);
 		}
 
 		keys = verb_Object.keySet();
