@@ -18,8 +18,13 @@ import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
 import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.CoreLabel.OutputFormat;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import edu.stanford.nlp.semgraph.SemanticGraph;
+import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
+import edu.stanford.nlp.trees.Tree;
+import edu.stanford.nlp.trees.TreeCoreAnnotations;
 import edu.stanford.nlp.util.CoreMap;
 
 /** A simple corenlp example ripped directly from the Stanford CoreNLP website using text from wikinews. */
@@ -28,13 +33,17 @@ public class SimpleExample {
   public static void main(String[] args) throws IOException {
     // creates a StanfordCoreNLP object, with POS tagging, lemmatization, NER, parsing, and coreference resolution 
     Properties props = new Properties();
-    props.put("annotators", "tokenize, ssplit, pos,lemma,ner, regexner  ");
-    props.put("regexner.mapping", "C:\\Users\\unmeshvinchurkar\\Desktop\\regexner.txt");
+    props.put("annotators", "tokenize, ssplit, pos,lemma,ner, parse ");
+    
+   // props.put("annotators", "tokenize, ssplit, pos,lemma,ner, regexner  ");
+   // props.put("regexner.mapping", "C:\\Users\\unmeshvinchurkar\\Desktop\\regexner.txt");
     StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
     
     // read some text from the file..
     File inputFile = new File("C:\\Users\\unmeshvinchurkar\\Desktop\\sample.txt");
-    String text = Files.toString(inputFile, Charset.forName("UTF-8"));
+    String text ="The strongest rain ever recorded in India shut down the financial hub of Mumbai, snapped communication lines, closed airports and forced thousands of people to sleep in their offices or walk home during the night, officials said today.";
+	
+    //Files.toString(inputFile, Charset.forName("UTF-8"));
 
     // create an empty Annotation just with the given text
     Annotation document = new Annotation(text);
@@ -74,6 +83,23 @@ public class SimpleExample {
         
        // System.out.println("word: " + word + " pos: " + pos + " ne:" + ne);
       }
+      
+      
+    SemanticGraph graph =
+		 sentence.get(SemanticGraphCoreAnnotations.CollapsedCCProcessedDependenciesAnnotation.class);
+    System.out.println(graph.toString(SemanticGraph.OutputFormat.LIST));
+      
+  	Tree tree =
+		 sentence.get(TreeCoreAnnotations.TreeAnnotation.class);
+		 tree.pennPrint(System.out);
+		 
+		 graph = sentence.get(SemanticGraphCoreAnnotations.BasicDependenciesAnnotation.class);
+      
+		 graph.toString(SemanticGraph.OutputFormat.LIST);
+		 
+     // System.out.println(sentence.get(SemanticGraphCoreAnnotations.BasicDependenciesAnnotation.class).toString());
+		// out.println("//////////////////////////////////////////////////////////");
+		//
 
     
     }

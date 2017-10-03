@@ -22,19 +22,33 @@ public class DependencyExtractor {
 	public static String ADJ_NOUN = "amod";
 	public static String VB_IN_NOUN = "nmod:in"; // recorded in India
 	public static String VB_OF_NOUN = "nmod:of";
+	public static String NOUN_VERB = "acl";
 	public static String COMPOUND_WORDS = "compound";
 
 	private Map<String, CoreLabel> tokenMap = null;
 
 	private Set<Concept> concepts = new LinkedHashSet<>();
 
+	// "nsubj"
 	private Map<String, Set<String>> verb_Subject = new HashMap<>();
+
+	// "dobj"
 	private Map<String, Set<String>> verb_Object = new HashMap<>();
 
+	// "nmod:in"
 	private Map<String, Set<String>> verb_in_noun_map = new HashMap<>();
+
+	// "nmod:of"
 	private Map<String, Set<String>> noun_of_noun_map = new HashMap<>();
+
+	// "amod"
 	private Map<String, Set<String>> adj_noun_map = new HashMap<>();
+
+	// "xcomp"
 	private Map<String, Set<String>> verb_verb_map = new HashMap<>();
+
+	// acl
+	private Map<String, Set<String>> noun_verb_map = new HashMap<>();
 
 	private Map<String, Set<String>> compoundWords = new HashMap<>();
 
@@ -43,7 +57,7 @@ public class DependencyExtractor {
 
 	}
 
-	public void extractDependencies(String collapsedDeps) {
+	public Set<Concept> extractDependencies(String collapsedDeps) {
 
 		try {
 			BufferedReader bufReader = new BufferedReader(new StringReader(collapsedDeps));
@@ -51,7 +65,21 @@ public class DependencyExtractor {
 			String line = null;
 			while ((line = bufReader.readLine()) != null) {
 
-				if (line.startsWith(SUBJECT)) {
+				if (line.startsWith(NOUN_VERB)) {
+					String verb_noun[] = getPair(line);
+
+					Set<String> set = noun_verb_map.get(verb_noun[0]);
+
+					if (set == null) {
+						set = new HashSet<>();
+						noun_verb_map.put(verb_noun[0], set);
+					}
+
+					set.add(verb_noun[1]);
+
+				}
+
+				else if (line.startsWith(SUBJECT)) {
 					String verb_noun[] = getPair(line);
 
 					Set<String> set = verb_Subject.get(verb_noun[0]);
@@ -85,7 +113,7 @@ public class DependencyExtractor {
 					set.add(verb_noun[1]);
 
 				}
-				
+
 				else if (line.startsWith(VB_OF_NOUN)) {
 					String noun_noun[] = getPair(line);
 
@@ -97,7 +125,7 @@ public class DependencyExtractor {
 					set.add(noun_noun[1]);
 
 				}
-				
+
 				else if (line.startsWith(ADJ_NOUN)) {
 					String adj_noun[] = getPair(line);
 
@@ -149,6 +177,8 @@ public class DependencyExtractor {
 		}
 
 		generateConcepts();
+
+		return concepts;
 	}
 
 	public void generateConcepts() {
@@ -178,20 +208,30 @@ public class DependencyExtractor {
 				concepts.add(concept);
 			}
 		}
-		
-		
+
+		keys = noun_verb_map.keySet();
+
+		for (String noun : keys) {
+			Set<String> verbs = noun_verb_map.get(noun);
+
+			for (String verb : verbs) {
+				Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(noun)),
+						new VerbWrapper(tokenMap, true, verb), nul);
+				concepts.add(concept);
+			}
+		}
+
 		keys = noun_of_noun_map.keySet();
 
 		for (String noun : keys) {
 			Set<String> nouns = noun_of_noun_map.get(noun);
 
 			for (String noun1 : nouns) {
-				Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(noun)), new VerbWrapper(tokenMap, true, "of"),
-						new ObjectWrapper(tokenMap, true, getWord(noun1)));
+				Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(noun)),
+						new VerbWrapper(tokenMap, true, "of"), new ObjectWrapper(tokenMap, true, getWord(noun1)));
 				concepts.add(concept);
 			}
 		}
-		
 
 		keys = verb_verb_map.keySet();
 
