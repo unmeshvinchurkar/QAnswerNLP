@@ -6,24 +6,33 @@ import java.io.StringReader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import edu.stanford.nlp.coref.CorefCoreAnnotations.CorefChainAnnotation;
+import edu.stanford.nlp.coref.data.CorefChain;
+import edu.stanford.nlp.coref.data.CorefChain.CorefMention;
 import edu.stanford.nlp.ling.CoreLabel;
+import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
+import edu.stanford.nlp.ling.CoreAnnotations.TokensAnnotation;
+import edu.stanford.nlp.pipeline.Annotation;
 
 public class DependencyExtractor {
-
-	public static String SUBJECT = "nsubj";
-	public static String OBJECT = "dobj";
-	public static String IN = "prep_in";
-	public static String OF = "prep_of";
-	public static String VERB_VERB_PHRASE = "xcomp";
-	public static String TIME_MOD = "tmod";
-	public static String ADJ_NOUN = "amod";
-	public static String VB_IN_NOUN = "nmod:in"; // recorded in India
-	public static String VB_OF_NOUN = "nmod:of";
-	public static String NOUN_VERB = "acl";
-	public static String COMPOUND_WORDS = "compound";
+	public static final String SUBJECT_PASSIVE = "nsubjpass";
+	public static final String SUBJECT = "nsubj";
+	public static final String OBJECT = "dobj";
+	public static final String IN = "prep_in";
+	public static final String OF = "prep_of";
+	public static final String VERB_VERB_PHRASE = "xcomp";
+	public static final String TIME_MOD = "tmod";
+	public static final String ADJ_NOUN = "amod";
+	public static final String VB_IN_NOUN = "nmod:in"; // recorded in India
+	public static final String VB_OF_NOUN = "nmod:of";
+	public static final String VB_FOR_NOUN = "nmod:for";
+	public static final String NOUN_VERB = "acl";
+	public static final String COMPOUND_WORDS = "compound";
 
 	private Map<String, CoreLabel> tokenMap = null;
 
@@ -47,7 +56,7 @@ public class DependencyExtractor {
 	// "xcomp"
 	private Map<String, Set<String>> verb_verb_map = new HashMap<>();
 
-	// acl
+	// acl  acl:relcl
 	private Map<String, Set<String>> verb_noun_map = new HashMap<>();
 
 	private Map<String, Set<String>> compoundWords = new HashMap<>();
@@ -79,7 +88,7 @@ public class DependencyExtractor {
 
 				}
 
-				else if (line.startsWith(SUBJECT)) {
+				else if (line.startsWith(SUBJECT) && !line.startsWith(SUBJECT_PASSIVE)) {
 					String verb_noun[] = getPair(line);
 
 					Set<String> set = verb_Subject.get(verb_noun[0]);
@@ -187,15 +196,15 @@ public class DependencyExtractor {
 
 		Set<String> keys = adj_noun_map.keySet();
 
-		for (String adj : keys) {
-			Set<String> nouns = adj_noun_map.get(adj);
-
-			for (String noun : nouns) {
-				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, false, getWord(adj)),
-						new ObjectWrapper(tokenMap, true, getWord(noun)));
-				concepts.add(concept);
-			}
-		}
+//		for (String adj : keys) {
+//			Set<String> nouns = adj_noun_map.get(adj);
+//
+//			for (String noun : nouns) {
+//				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, false, getWord(adj)),
+//						new ObjectWrapper(tokenMap, true, getWord(noun)));
+//				concepts.add(concept);
+//			}
+//		}
 
 		keys = noun_in_noun_map.keySet();
 
@@ -215,8 +224,8 @@ public class DependencyExtractor {
 			Set<String> verbs = verb_noun_map.get(noun);
 
 			for (String verb : verbs) {
-				Concept concept = new Concept(nul,
-						new VerbWrapper(tokenMap, true, getWord(verb)), new ObjectWrapper(tokenMap, true, getWord(noun)));
+				Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(noun)),
+						new VerbWrapper(tokenMap, true, getWord(verb)), nul);
 				concepts.add(concept);
 			}
 		}
@@ -233,17 +242,17 @@ public class DependencyExtractor {
 			}
 		}
 
-		keys = verb_verb_map.keySet();
-
-		for (String verb : keys) {
-			Set<String> verbs = verb_verb_map.get(verb);
-
-			for (String v : verbs) {
-				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, true, getWord(verb)),
-						new ObjectWrapper(tokenMap, false, getWord(v)));
-				concepts.add(concept);
-			}
-		}
+//		keys = verb_verb_map.keySet();
+//
+//		for (String verb : keys) {
+//			Set<String> verbs = verb_verb_map.get(verb);
+//
+//			for (String v : verbs) {
+//				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, true, getWord(verb)),
+//						new ObjectWrapper(tokenMap, false, getWord(v)));
+//				concepts.add(concept);
+//			}
+//		}
 		
 		
 		Set<String> toBeRemovedSub = new HashSet<>();
@@ -347,6 +356,50 @@ public class DependencyExtractor {
 			}
 		}
 		return pair;
+	}
+	
+	private CorefStore buildCorefs( Annotation document){
+		
+		CorefStore store = new CorefStore();
+		
+		 Map<Integer, CorefChain> coref = document.get(CorefChainAnnotation.class);
+		 
+		 for(Map.Entry<Integer, CorefChain> entry : coref.entrySet()) {
+		        CorefChain c = entry.getValue();
+
+		        //this is because it prints out a lot of self references which aren't that useful
+		        if(c.getMentionsInTextualOrder().size() <= 1){
+		            continue;
+		        }
+
+		        CorefMention cm = c.getRepresentativeMention();
+		        String clust = "";
+		        List<CoreLabel> tks = document.get(SentencesAnnotation.class).get(cm.sentNum-1).get(TokensAnnotation.class);
+		        for(int i = cm.startIndex-1; i < cm.endIndex-1; i++)
+		            clust += tks.get(i).get(TextAnnotation.class) + " ";
+		        clust = clust.trim();
+		      //  System.out.println("representative mention: \"" + clust + "\" is mentioned by:");
+		        
+		      
+
+		        for(CorefMention m : c.getMentionsInTextualOrder()){
+		            String clust2 = "";
+		            tks = document.get(SentencesAnnotation.class).get(m.sentNum-1).get(TokensAnnotation.class);
+		            for(int i = m.startIndex-1; i < m.endIndex-1; i++)
+		                clust2 += tks.get(i).get(TextAnnotation.class) + " ";
+		            clust2 = clust2.trim();
+		            //don't need the self mention
+		            if(clust.equals(clust2)){
+		                continue;
+		            }
+		            
+		            store.addCoRef(String.valueOf(m.sentNum-1), clust2, clust);
+
+		         //   System.out.println("\t" + clust2);
+		        }
+		    }
+		
+		return store;
 	}
 
 }

@@ -5,13 +5,22 @@ import edu.stanford.nlp.simple.*;
 
 import edu.stanford.nlp.ie.util.RelationTriple;
 import edu.stanford.nlp.ling.CoreAnnotations;
+import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import edu.stanford.nlp.semgraph.SemanticGraph;
+import edu.stanford.nlp.semgraph.SemanticGraphCoreAnnotations;
 import edu.stanford.nlp.naturalli.NaturalLogicAnnotations;
 import edu.stanford.nlp.util.CoreMap;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+
+import com.nlp.Concept;
+import com.nlp.DependencyExtractor;
 
 /**
  * A demo illustrating how to call the OpenIE system programmatically.
@@ -25,11 +34,12 @@ public class OpenIEDemo {
     StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
 
     // Annotate an example document.
-    Annotation doc = new Annotation("Obama was born in Hawaii. He is our president.");
+    Annotation doc = new Annotation("suppose you own an insurance company, that wants to use a decision service to do some preliminary processing for online car insurance applications.");
     pipeline.annotate(doc);
 
     // Loop over sentences in the document
     for (CoreMap sentence : doc.get(CoreAnnotations.SentencesAnnotation.class)) {
+    	Map<String, CoreLabel> tokenMap = new HashMap<String, CoreLabel>();
       // Get the OpenIE triples for the sentence
       Collection<RelationTriple> triples = sentence.get(NaturalLogicAnnotations.RelationTriplesAnnotation.class);
       // Print the triples
@@ -39,6 +49,26 @@ public class OpenIEDemo {
             triple.relationLemmaGloss() + "\t" +
             triple.objectLemmaGloss());
       }
+      
+      
+      SemanticGraph graph = sentence
+				.get(SemanticGraphCoreAnnotations.CollapsedCCProcessedDependenciesAnnotation.class);
+		String dependentStr = graph.toString(SemanticGraph.OutputFormat.LIST);
+
+		DependencyExtractor ex = new DependencyExtractor(tokenMap);
+		Set<Concept> concepts = ex.extractDependencies(dependentStr);
+		
+		
+		for(Concept c: concepts){
+			
+			System.out.println(c);
+			System.out.println("_________________________________________________________________________");
+			
+			
+		}
+
+      
+      
     }
   }
 }
