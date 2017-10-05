@@ -59,8 +59,8 @@ public class DependencyExtractor {
 	// acl acl:relcl
 	private Map<String, Set<String>> verb_noun_map = new HashMap<>();
 
-	private Map<String, Set<String>> compoundWords = new HashMap<>();
-	
+	private Set<String> compoundWords = new HashSet<>();
+
 	private CorefStore coRefStore = null;
 
 	public DependencyExtractor(Map<String, CoreLabel> tokenMap) {
@@ -69,7 +69,7 @@ public class DependencyExtractor {
 	}
 
 	public Set<Concept> extractDependencies(String collapsedDeps, Annotation document) {
-		
+
 		coRefStore = buildCorefs(document);
 		int sentenceNo = 0;
 
@@ -88,7 +88,7 @@ public class DependencyExtractor {
 						set = new HashSet<>();
 						verb_noun_map.put(verb_noun[0], set);
 					}
-					
+
 					set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), verb_noun[1], verb_noun[1]));
 
 				}
@@ -122,15 +122,16 @@ public class DependencyExtractor {
 					Set<String> set = noun_in_noun_map.get(noun_noun[0]);
 					if (set == null) {
 						set = new HashSet<>();
-						noun_in_noun_map.put(coRefStore.getCoRef(String.valueOf(sentenceNo), noun_noun[0], noun_noun[0]), set);
+						noun_in_noun_map
+								.put(coRefStore.getCoRef(String.valueOf(sentenceNo), noun_noun[0], noun_noun[0]), set);
 					}
-					set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), noun_noun[1], noun_noun[1])); 
- 
+					set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), noun_noun[1], noun_noun[1]));
+
 				}
 
 				else if (line.startsWith(NOUN_OF_NOUN)) {
 					String noun_noun[] = getPair(line);
-					
+
 					String noun0 = coRefStore.getCoRef(String.valueOf(sentenceNo), noun_noun[0], noun_noun[0]);
 					String noun1 = coRefStore.getCoRef(String.valueOf(sentenceNo), noun_noun[1], noun_noun[1]);
 
@@ -144,7 +145,7 @@ public class DependencyExtractor {
 
 				else if (line.startsWith(ADJ_NOUN)) {
 					String adj_noun[] = getPair(line);
-					
+
 					String noun = coRefStore.getCoRef(String.valueOf(sentenceNo), adj_noun[1], adj_noun[1]);
 
 					Set<String> set = adj_noun_map.get(noun);
@@ -171,23 +172,13 @@ public class DependencyExtractor {
 
 					if (getIndex(word_word[0]) < getIndex(word_word[1])) {
 
-						Set<String> set = compoundWords.get(getWord(word_word[0]));
-						if (set == null) {
-							set = new HashSet<>();
-							compoundWords.put(getWord(word_word[0]), set);
-						}
-						set.add(getWord(word_word[0]) + " " + getWord(word_word[1]));
+						compoundWords.add(word_word[0] + " " + word_word[1]);
 					} else {
 
-						Set<String> set = compoundWords.get(getWord(word_word[1]));
-						if (set == null) {
-							set = new HashSet<>();
-							compoundWords.put(getWord(word_word[1]), set);
-						}
-						set.add(getWord(word_word[1]) + " " + getWord(word_word[0]));
+						compoundWords.add(word_word[1] + " " + word_word[0]);
 					}
 				}
-				
+
 				sentenceNo++;
 			}
 
@@ -322,21 +313,31 @@ public class DependencyExtractor {
 
 	public boolean areCompoundWords(String w1, String w2) {
 
-		if (compoundWords.containsKey(w1)) {
-			Set<String> set = compoundWords.get(w1);
-			for (String w : set) {
-				if (w.contains(w2)) {
-					return true;
-				}
+		for (String compoundWord : compoundWords) {
+			if (compoundWord.contains(w1) && compoundWord.contains(w2)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public Set<String> lookUpCompoundWords(String word) {
+		Set<String> words = new HashSet<>();
+
+		for (String compoundWord : compoundWords) {
+			if (compoundWord.contains(word)) {
+				words.add(compoundWord);
 			}
 		}
 
-		else if (compoundWords.containsKey(w2)) {
-			Set<String> set = compoundWords.get(w2);
-			for (String w : set) {
-				if (w.contains(w1)) {
-					return true;
-				}
+		return words;
+	}
+
+	public boolean isCompoundWord(String word) {
+
+		for (String compoundWord : compoundWords) {
+			if (compoundWord.contains(word)) {
+				return true;
 			}
 		}
 		return false;
@@ -390,8 +391,9 @@ public class DependencyExtractor {
 			String clust = "";
 			List<CoreLabel> tks = document.get(SentencesAnnotation.class).get(cm.sentNum - 1)
 					.get(TokensAnnotation.class);
-			for (int i = cm.startIndex - 1; i < cm.endIndex - 1; i++)
+			for (int i = cm.startIndex - 1; i < cm.endIndex - 1; i++){
 				clust += tks.get(i).get(TextAnnotation.class) + " ";
+			}
 			clust = clust.trim();
 			// System.out.println("representative mention: \"" + clust + "\" is
 			// mentioned by:");
@@ -401,8 +403,9 @@ public class DependencyExtractor {
 			for (CorefMention m : c.getMentionsInTextualOrder()) {
 				String clust2 = "";
 				tks = document.get(SentencesAnnotation.class).get(m.sentNum - 1).get(TokensAnnotation.class);
-				for (int i = m.startIndex - 1; i < m.endIndex - 1; i++)
+				for (int i = m.startIndex - 1; i < m.endIndex - 1; i++){
 					clust2 += tks.get(i).get(TextAnnotation.class) + " ";
+				}
 				clust2 = clust2.trim();
 				// don't need the self mention
 				if (clust.equals(clust2)) {
