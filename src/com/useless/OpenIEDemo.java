@@ -56,7 +56,7 @@ public class OpenIEDemo {
 		String dependentStr = graph.toString(SemanticGraph.OutputFormat.LIST);
 
 		DependencyExtractor ex = new DependencyExtractor(tokenMap);
-		Set<Concept> concepts = ex.extractDependencies(dependentStr);
+		Set<Concept> concepts = ex.extractDependencies(dependentStr, doc);
 		
 		
 		for(Concept c: concepts){

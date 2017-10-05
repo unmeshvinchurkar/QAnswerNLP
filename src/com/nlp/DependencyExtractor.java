@@ -28,8 +28,8 @@ public class DependencyExtractor {
 	public static final String VERB_VERB_PHRASE = "xcomp";
 	public static final String TIME_MOD = "tmod";
 	public static final String ADJ_NOUN = "amod";
-	public static final String VB_IN_NOUN = "nmod:in"; // recorded in India
-	public static final String VB_OF_NOUN = "nmod:of";
+	public static final String NOUN_IN_NOUN = "nmod:in"; // recorded in India
+	public static final String NOUN_OF_NOUN = "nmod:of";
 	public static final String VB_FOR_NOUN = "nmod:for";
 	public static final String NOUN_VERB = "acl";
 	public static final String COMPOUND_WORDS = "compound";
@@ -56,17 +56,22 @@ public class DependencyExtractor {
 	// "xcomp"
 	private Map<String, Set<String>> verb_verb_map = new HashMap<>();
 
-	// acl  acl:relcl
+	// acl acl:relcl
 	private Map<String, Set<String>> verb_noun_map = new HashMap<>();
 
 	private Map<String, Set<String>> compoundWords = new HashMap<>();
+	
+	private CorefStore coRefStore = null;
 
 	public DependencyExtractor(Map<String, CoreLabel> tokenMap) {
 		this.tokenMap = tokenMap;
 
 	}
 
-	public Set<Concept> extractDependencies(String collapsedDeps) {
+	public Set<Concept> extractDependencies(String collapsedDeps, Annotation document) {
+		
+		coRefStore = buildCorefs(document);
+		int sentenceNo = 0;
 
 		try {
 			BufferedReader bufReader = new BufferedReader(new StringReader(collapsedDeps));
@@ -83,8 +88,8 @@ public class DependencyExtractor {
 						set = new HashSet<>();
 						verb_noun_map.put(verb_noun[0], set);
 					}
-
-					set.add(verb_noun[1]);
+					
+					set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), verb_noun[1], verb_noun[1]));
 
 				}
 
@@ -98,7 +103,7 @@ public class DependencyExtractor {
 						verb_Subject.put(verb_noun[0], set);
 					}
 
-					set.add(verb_noun[1]);
+					set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), verb_noun[1], verb_noun[1]));
 
 				} else if (line.startsWith(OBJECT)) {
 
@@ -109,39 +114,43 @@ public class DependencyExtractor {
 						set = new HashSet<>();
 						verb_Object.put(verb_noun[0], set);
 					}
-					set.add(verb_noun[1]);
+					set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), verb_noun[1], verb_noun[1]));
 
-				} else if (line.startsWith(VB_IN_NOUN) || line.startsWith(IN)) {
-					String verb_noun[] = getPair(line);
-
-					Set<String> set = noun_in_noun_map.get(verb_noun[0]);
-					if (set == null) {
-						set = new HashSet<>();
-						noun_in_noun_map.put(verb_noun[0], set);
-					}
-					set.add(verb_noun[1]);
-
-				}
-
-				else if (line.startsWith(VB_OF_NOUN)) {
+				} else if (line.startsWith(NOUN_IN_NOUN) || line.startsWith(IN)) {
 					String noun_noun[] = getPair(line);
 
-					Set<String> set = noun_of_noun_map.get(noun_noun[0]);
+					Set<String> set = noun_in_noun_map.get(noun_noun[0]);
 					if (set == null) {
 						set = new HashSet<>();
-						noun_of_noun_map.put(noun_noun[0], set);
+						noun_in_noun_map.put(coRefStore.getCoRef(String.valueOf(sentenceNo), noun_noun[0], noun_noun[0]), set);
 					}
-					set.add(noun_noun[1]);
+					set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), noun_noun[1], noun_noun[1])); 
+ 
+				}
 
+				else if (line.startsWith(NOUN_OF_NOUN)) {
+					String noun_noun[] = getPair(line);
+					
+					String noun0 = coRefStore.getCoRef(String.valueOf(sentenceNo), noun_noun[0], noun_noun[0]);
+					String noun1 = coRefStore.getCoRef(String.valueOf(sentenceNo), noun_noun[1], noun_noun[1]);
+
+					Set<String> set = noun_of_noun_map.get(noun0);
+					if (set == null) {
+						set = new HashSet<>();
+						noun_of_noun_map.put(noun0, set);
+					}
+					set.add(noun1);
 				}
 
 				else if (line.startsWith(ADJ_NOUN)) {
 					String adj_noun[] = getPair(line);
+					
+					String noun = coRefStore.getCoRef(String.valueOf(sentenceNo), adj_noun[1], adj_noun[1]);
 
-					Set<String> set = adj_noun_map.get(adj_noun[1]);
+					Set<String> set = adj_noun_map.get(noun);
 					if (set == null) {
 						set = new HashSet<>();
-						adj_noun_map.put(adj_noun[1], set);
+						adj_noun_map.put(noun, set);
 					}
 					set.add(adj_noun[0]);
 				}
@@ -178,6 +187,8 @@ public class DependencyExtractor {
 						set.add(getWord(word_word[1]) + " " + getWord(word_word[0]));
 					}
 				}
+				
+				sentenceNo++;
 			}
 
 			bufReader.close();
@@ -196,15 +207,16 @@ public class DependencyExtractor {
 
 		Set<String> keys = adj_noun_map.keySet();
 
-//		for (String adj : keys) {
-//			Set<String> nouns = adj_noun_map.get(adj);
-//
-//			for (String noun : nouns) {
-//				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, false, getWord(adj)),
-//						new ObjectWrapper(tokenMap, true, getWord(noun)));
-//				concepts.add(concept);
-//			}
-//		}
+		// for (String adj : keys) {
+		// Set<String> nouns = adj_noun_map.get(adj);
+		//
+		// for (String noun : nouns) {
+		// Concept concept = new Concept(nul, new VerbWrapper(tokenMap, false,
+		// getWord(adj)),
+		// new ObjectWrapper(tokenMap, true, getWord(noun)));
+		// concepts.add(concept);
+		// }
+		// }
 
 		keys = noun_in_noun_map.keySet();
 
@@ -212,7 +224,8 @@ public class DependencyExtractor {
 			Set<String> nouns = noun_in_noun_map.get(noun);
 
 			for (String noun1 : nouns) {
-				Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(noun)), new VerbWrapper(tokenMap, true, getWord("in")),
+				Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(noun)),
+						new VerbWrapper(tokenMap, true, getWord("in")),
 						new ObjectWrapper(tokenMap, true, getWord(noun1)));
 				concepts.add(concept);
 			}
@@ -242,19 +255,19 @@ public class DependencyExtractor {
 			}
 		}
 
-//		keys = verb_verb_map.keySet();
-//
-//		for (String verb : keys) {
-//			Set<String> verbs = verb_verb_map.get(verb);
-//
-//			for (String v : verbs) {
-//				Concept concept = new Concept(nul, new VerbWrapper(tokenMap, true, getWord(verb)),
-//						new ObjectWrapper(tokenMap, false, getWord(v)));
-//				concepts.add(concept);
-//			}
-//		}
-		
-		
+		// keys = verb_verb_map.keySet();
+		//
+		// for (String verb : keys) {
+		// Set<String> verbs = verb_verb_map.get(verb);
+		//
+		// for (String v : verbs) {
+		// Concept concept = new Concept(nul, new VerbWrapper(tokenMap, true,
+		// getWord(verb)),
+		// new ObjectWrapper(tokenMap, false, getWord(v)));
+		// concepts.add(concept);
+		// }
+		// }
+
 		Set<String> toBeRemovedSub = new HashSet<>();
 		Set<String> toBeRemovedObj = new HashSet<>();
 
@@ -263,7 +276,7 @@ public class DependencyExtractor {
 		for (String verb : keys) {
 
 			Set<String> subjs = verb_Subject.get(verb);
-			
+
 			toBeRemovedSub.add(verb);
 
 			if (verb_Object.containsKey(verb)) {
@@ -357,48 +370,51 @@ public class DependencyExtractor {
 		}
 		return pair;
 	}
-	
-	private CorefStore buildCorefs( Annotation document){
-		
+
+	private CorefStore buildCorefs(Annotation document) {
+
 		CorefStore store = new CorefStore();
-		
-		 Map<Integer, CorefChain> coref = document.get(CorefChainAnnotation.class);
-		 
-		 for(Map.Entry<Integer, CorefChain> entry : coref.entrySet()) {
-		        CorefChain c = entry.getValue();
 
-		        //this is because it prints out a lot of self references which aren't that useful
-		        if(c.getMentionsInTextualOrder().size() <= 1){
-		            continue;
-		        }
+		Map<Integer, CorefChain> coref = document.get(CorefChainAnnotation.class);
 
-		        CorefMention cm = c.getRepresentativeMention();
-		        String clust = "";
-		        List<CoreLabel> tks = document.get(SentencesAnnotation.class).get(cm.sentNum-1).get(TokensAnnotation.class);
-		        for(int i = cm.startIndex-1; i < cm.endIndex-1; i++)
-		            clust += tks.get(i).get(TextAnnotation.class) + " ";
-		        clust = clust.trim();
-		      //  System.out.println("representative mention: \"" + clust + "\" is mentioned by:");
-		        
-		      
+		for (Map.Entry<Integer, CorefChain> entry : coref.entrySet()) {
+			CorefChain c = entry.getValue();
 
-		        for(CorefMention m : c.getMentionsInTextualOrder()){
-		            String clust2 = "";
-		            tks = document.get(SentencesAnnotation.class).get(m.sentNum-1).get(TokensAnnotation.class);
-		            for(int i = m.startIndex-1; i < m.endIndex-1; i++)
-		                clust2 += tks.get(i).get(TextAnnotation.class) + " ";
-		            clust2 = clust2.trim();
-		            //don't need the self mention
-		            if(clust.equals(clust2)){
-		                continue;
-		            }
-		            
-		            store.addCoRef(String.valueOf(m.sentNum-1), clust2, clust);
+			// this is because it prints out a lot of self references which
+			// aren't that useful
+			if (c.getMentionsInTextualOrder().size() <= 1) {
+				continue;
+			}
 
-		         //   System.out.println("\t" + clust2);
-		        }
-		    }
-		
+			CorefMention cm = c.getRepresentativeMention();
+			String clust = "";
+			List<CoreLabel> tks = document.get(SentencesAnnotation.class).get(cm.sentNum - 1)
+					.get(TokensAnnotation.class);
+			for (int i = cm.startIndex - 1; i < cm.endIndex - 1; i++)
+				clust += tks.get(i).get(TextAnnotation.class) + " ";
+			clust = clust.trim();
+			// System.out.println("representative mention: \"" + clust + "\" is
+			// mentioned by:");
+
+			store.addRepresentative(String.valueOf(cm.sentNum - 1), clust);
+
+			for (CorefMention m : c.getMentionsInTextualOrder()) {
+				String clust2 = "";
+				tks = document.get(SentencesAnnotation.class).get(m.sentNum - 1).get(TokensAnnotation.class);
+				for (int i = m.startIndex - 1; i < m.endIndex - 1; i++)
+					clust2 += tks.get(i).get(TextAnnotation.class) + " ";
+				clust2 = clust2.trim();
+				// don't need the self mention
+				if (clust.equals(clust2)) {
+					continue;
+				}
+
+				store.addCoRef(String.valueOf(m.sentNum - 1), clust2, clust);
+
+				// System.out.println("\t" + clust2);
+			}
+		}
+
 		return store;
 	}
 

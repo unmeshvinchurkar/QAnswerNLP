@@ -134,7 +134,7 @@ public class ConceptExtractor {
 						String dependentStr = graph.toString(SemanticGraph.OutputFormat.LIST);
 
 						DependencyExtractor ex = new DependencyExtractor(tokenMap);
-						Set<Concept> concepts = ex.extractDependencies(dependentStr);
+						Set<Concept> concepts = ex.extractDependencies(dependentStr, annotation);
 						
 						
 						for(Concept c: concepts){
