@@ -30,11 +30,11 @@ public class OpenIEDemo {
   public static void main(String[] args) throws Exception {
     // Create the Stanford CoreNLP pipeline
     Properties props = new Properties();
-    props.setProperty("annotators", "tokenize,ssplit,pos,lemma, ner , depparse,mention,coref,natlog,openie");
+    props.setProperty("annotators", "tokenize,ssplit,pos,lemma, ner , depparse,mention, parse, dcoref,natlog,openie, dcoref");
     StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
 
     // Annotate an example document.
-    Annotation doc = new Annotation("suppose you own an insurance company, that wants to use a decision service to do some preliminary processing for online car insurance applications.");
+    Annotation doc = new Annotation("suppose you own an insurance company, that wants to use a product to do some preliminary processing for car insurance.");
     pipeline.annotate(doc);
 
     // Loop over sentences in the document
@@ -54,6 +54,9 @@ public class OpenIEDemo {
       SemanticGraph graph = sentence
 				.get(SemanticGraphCoreAnnotations.CollapsedCCProcessedDependenciesAnnotation.class);
 		String dependentStr = graph.toString(SemanticGraph.OutputFormat.LIST);
+		
+		 System.out.println(dependentStr ) ;
+		 System.out.println();
 
 		DependencyExtractor ex = new DependencyExtractor(tokenMap);
 		Set<Concept> concepts = ex.extractDependencies(dependentStr, doc);

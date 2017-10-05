@@ -13,6 +13,7 @@ import java.util.Set;
 import edu.stanford.nlp.coref.CorefCoreAnnotations.CorefChainAnnotation;
 import edu.stanford.nlp.coref.data.CorefChain;
 import edu.stanford.nlp.coref.data.CorefChain.CorefMention;
+import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.CoreLabel;
 import edu.stanford.nlp.ling.CoreAnnotations.SentencesAnnotation;
 import edu.stanford.nlp.ling.CoreAnnotations.TextAnnotation;
@@ -22,6 +23,7 @@ import edu.stanford.nlp.pipeline.Annotation;
 public class DependencyExtractor {
 	public static final String SUBJECT_PASSIVE = "nsubjpass";
 	public static final String SUBJECT = "nsubj";
+	public static final String INDIRECT_SUBJECT = "acl";
 	public static final String OBJECT = "dobj";
 	public static final String IN = "prep_in";
 	public static final String OF = "prep_of";
@@ -31,8 +33,10 @@ public class DependencyExtractor {
 	public static final String NOUN_IN_NOUN = "nmod:in"; // recorded in India
 	public static final String NOUN_OF_NOUN = "nmod:of";
 	public static final String VB_FOR_NOUN = "nmod:for";
-	public static final String NOUN_VERB = "acl";
+	//public static final String NOUN_VERB = "acl";
 	public static final String COMPOUND_WORDS = "compound";
+
+	public static final String VERB_COMPLEMENT = "xcomp";
 
 	private Map<String, CoreLabel> tokenMap = null;
 
@@ -59,6 +63,9 @@ public class DependencyExtractor {
 	// acl acl:relcl
 	private Map<String, Set<String>> verb_noun_map = new HashMap<>();
 
+	// xcomp
+	private Map<String, String> verb_comp_map = new HashMap<>();
+
 	private Set<String> compoundWords = new HashSet<>();
 
 	private CorefStore coRefStore = null;
@@ -79,21 +86,26 @@ public class DependencyExtractor {
 			String line = null;
 			while ((line = bufReader.readLine()) != null) {
 
-				if (line.startsWith(NOUN_VERB)) {
-					String verb_noun[] = getPair(line);
+				if (line.startsWith(VERB_COMPLEMENT)) {
+					String verb_compVerb[] = getPair(line);
+					verb_comp_map.put(verb_compVerb[0], verb_compVerb[1]);
+				}
+				
+				else if (line.startsWith(INDIRECT_SUBJECT)) {
+					String noun_verb[] = getPair(line);
 
-					Set<String> set = verb_noun_map.get(verb_noun[0]);
+					Set<String> set = verb_Subject.get(noun_verb[1]);
 
 					if (set == null) {
 						set = new HashSet<>();
-						verb_noun_map.put(verb_noun[0], set);
+						verb_Subject.put(noun_verb[1], set);
 					}
 
-					set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), verb_noun[1], verb_noun[1]));
+					set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), noun_verb[0], noun_verb[0]));
 
 				}
 
-				else if (line.startsWith(SUBJECT) && !line.startsWith(SUBJECT_PASSIVE)) {
+				else if ((line.startsWith(SUBJECT)) && !line.startsWith(SUBJECT_PASSIVE)) {
 					String verb_noun[] = getPair(line);
 
 					Set<String> set = verb_Subject.get(verb_noun[0]);
@@ -105,16 +117,35 @@ public class DependencyExtractor {
 
 					set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), verb_noun[1], verb_noun[1]));
 
-				} else if (line.startsWith(OBJECT)) {
+				}
+
+//			 else if (line.startsWith(NOUN_VERB)) {
+//					String verb_noun[] = getPair(line);
+//
+//					Set<String> set = verb_noun_map.get(verb_noun[0]);
+//
+//					if (set == null) {
+//						set = new HashSet<>();
+//						verb_noun_map.put(verb_noun[0], set);
+//					}
+//
+//					set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), verb_noun[1], verb_noun[1]));
+//
+//				} 			 
+			 
+			 else if (line.startsWith(OBJECT) || line.startsWith(VB_FOR_NOUN)) {
 
 					String verb_noun[] = getPair(line);
 
-					Set<String> set = verb_Object.get(verb_noun[0]);
-					if (set == null) {
-						set = new HashSet<>();
-						verb_Object.put(verb_noun[0], set);
+					if (!isVerb(getPos(getWord(verb_noun[1])))) {
+
+						Set<String> set = verb_Object.get(verb_noun[0]);
+						if (set == null) {
+							set = new HashSet<>();
+							verb_Object.put(verb_noun[0], set);
+						}
+						set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), verb_noun[1], verb_noun[1]));
 					}
-					set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), verb_noun[1], verb_noun[1]));
 
 				} else if (line.startsWith(NOUN_IN_NOUN) || line.startsWith(IN)) {
 					String noun_noun[] = getPair(line);
@@ -259,7 +290,6 @@ public class DependencyExtractor {
 		// }
 		// }
 
-		Set<String> toBeRemovedSub = new HashSet<>();
 		Set<String> toBeRemovedObj = new HashSet<>();
 
 		keys = verb_Subject.keySet();
@@ -267,8 +297,6 @@ public class DependencyExtractor {
 		for (String verb : keys) {
 
 			Set<String> subjs = verb_Subject.get(verb);
-
-			toBeRemovedSub.add(verb);
 
 			if (verb_Object.containsKey(verb)) {
 
@@ -283,7 +311,37 @@ public class DependencyExtractor {
 						concepts.add(concept);
 					}
 				}
-			} else {
+			} else if (verb_comp_map.containsKey(verb)) {
+
+				// If verb complement exists then use it
+
+				String compVerb = verb_comp_map.get(verb);
+
+				if (verb_Object.containsKey(compVerb)) {
+
+					Set<String> objs = verb_Object.get(compVerb);
+					toBeRemovedObj.add(compVerb);
+					toBeRemovedObj.add(verb);
+
+					for (String sub : subjs) {
+						for (String obj : objs) {
+							Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(sub)),
+									new VerbWrapper(tokenMap, true, getWord(compVerb)),
+									new ObjectWrapper(tokenMap, true, getWord(obj)));
+							concepts.add(concept);
+						}
+					}
+				} else {
+
+					for (String sub : subjs) {
+						Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(sub)),
+								new VerbWrapper(tokenMap, true, getWord(verb)));
+						concepts.add(concept);
+					}
+				}
+			}
+
+			else {
 
 				for (String sub : subjs) {
 					Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(sub)),
@@ -293,6 +351,7 @@ public class DependencyExtractor {
 			}
 		}
 
+		// Remove used verbs
 		for (String k : toBeRemovedObj) {
 			verb_Object.remove(k);
 		}
@@ -391,7 +450,7 @@ public class DependencyExtractor {
 			String clust = "";
 			List<CoreLabel> tks = document.get(SentencesAnnotation.class).get(cm.sentNum - 1)
 					.get(TokensAnnotation.class);
-			for (int i = cm.startIndex - 1; i < cm.endIndex - 1; i++){
+			for (int i = cm.startIndex - 1; i < cm.endIndex - 1; i++) {
 				clust += tks.get(i).get(TextAnnotation.class) + " ";
 			}
 			clust = clust.trim();
@@ -403,7 +462,7 @@ public class DependencyExtractor {
 			for (CorefMention m : c.getMentionsInTextualOrder()) {
 				String clust2 = "";
 				tks = document.get(SentencesAnnotation.class).get(m.sentNum - 1).get(TokensAnnotation.class);
-				for (int i = m.startIndex - 1; i < m.endIndex - 1; i++){
+				for (int i = m.startIndex - 1; i < m.endIndex - 1; i++) {
 					clust2 += tks.get(i).get(TextAnnotation.class) + " ";
 				}
 				clust2 = clust2.trim();
@@ -419,6 +478,28 @@ public class DependencyExtractor {
 		}
 
 		return store;
+	}
+
+	public String getPos(String word) {
+
+		CoreLabel token = tokenMap.get(word.trim().toLowerCase());
+
+		if (token == null) {
+			return "";
+		}
+
+		return token.get(CoreAnnotations.PartOfSpeechAnnotation.class);
+	}
+
+	private boolean isNoun(String pos) {
+		return pos.equalsIgnoreCase("NN") || pos.equalsIgnoreCase("NNP") || pos.equalsIgnoreCase("NNPS")
+				|| pos.equalsIgnoreCase("NNS") || pos.equalsIgnoreCase("PRP");
+	}
+
+	private boolean isVerb(String wordType) {
+		return wordType.equalsIgnoreCase("VB") || wordType.equalsIgnoreCase("VBD") || wordType.equalsIgnoreCase("VBG")
+				|| wordType.equalsIgnoreCase("VBN") || wordType.equalsIgnoreCase("VBP")
+				|| wordType.equalsIgnoreCase("VBZ");
 	}
 
 }
