@@ -36,8 +36,11 @@ public class OpenIEDemo {
     // Annotate an example document.
     Annotation doc = new Annotation("suppose you own an insurance company, that wants to use a product to do some preliminary processing for car insurance.");
     pipeline.annotate(doc);
+    
+    DependencyExtractor ex = new DependencyExtractor(doc);
 
     // Loop over sentences in the document
+    int sNo =0;
     for (CoreMap sentence : doc.get(CoreAnnotations.SentencesAnnotation.class)) {
     	Map<String, CoreLabel> tokenMap = new HashMap<String, CoreLabel>();
       // Get the OpenIE triples for the sentence
@@ -57,9 +60,7 @@ public class OpenIEDemo {
 		
 		 System.out.println(dependentStr ) ;
 		 System.out.println();
-
-		DependencyExtractor ex = new DependencyExtractor(tokenMap);
-		Set<Concept> concepts = ex.extractDependencies(dependentStr, doc);
+		Set<Concept> concepts = ex.extractDependencies(tokenMap, dependentStr,  sNo++);
 		
 		
 		for(Concept c: concepts){

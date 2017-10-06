@@ -22,6 +22,7 @@ import edu.stanford.nlp.pipeline.Annotation;
 
 public class DependencyExtractor {
 	public static final String SUBJECT_PASSIVE = "nsubjpass";
+	public static final String VERB_PASSIVE = "auxpass";
 	public static final String SUBJECT = "nsubj";
 	public static final String INDIRECT_SUBJECT = "acl";
 	public static final String OBJECT = "dobj";
@@ -44,6 +45,12 @@ public class DependencyExtractor {
 
 	// "nsubj"
 	private Map<String, Set<String>> verb_Subject = new HashMap<>();
+	
+	//nsubjpass
+	private Map<String, Set<String>> verb_SubjectPassive = new HashMap<>();
+	
+	//auxpass
+	private Map<String, String> verb_passive = new HashMap<>();
 
 	// "dobj"
 	private Map<String, Set<String>> verb_Object = new HashMap<>();
@@ -64,22 +71,26 @@ public class DependencyExtractor {
 	private Map<String, Set<String>> verb_noun_map = new HashMap<>();
 
 	// xcomp
-	private Map<String, String> verb_comp_map = new HashMap<>();
+	private Map<String, Set<String>> verb_comp_map = new HashMap<>();
 
 	private Set<String> compoundWords = new HashSet<>();
 
 	private CorefStore coRefStore = null;
 
-	public DependencyExtractor(Map<String, CoreLabel> tokenMap) {
-		this.tokenMap = tokenMap;
-
-	}
-
-	public Set<Concept> extractDependencies(String collapsedDeps, Annotation document) {
+	public DependencyExtractor(Annotation document) {
 
 		coRefStore = buildCorefs(document);
-		int sentenceNo = 0;
+	}
 
+	public Set<Concept> getConcepts() {
+		return concepts;
+	}
+
+	public Set<Concept> extractDependencies(Map<String, CoreLabel> tokenMap,String collapsedDeps, int sentenceNo) {
+		
+		this.tokenMap = tokenMap;
+		
+		System.out.println(collapsedDeps);
 		try {
 			BufferedReader bufReader = new BufferedReader(new StringReader(collapsedDeps));
 
@@ -88,7 +99,34 @@ public class DependencyExtractor {
 
 				if (line.startsWith(VERB_COMPLEMENT)) {
 					String verb_compVerb[] = getPair(line);
-					verb_comp_map.put(verb_compVerb[0], verb_compVerb[1]);
+					
+					Set<String> set = verb_comp_map.get(verb_compVerb[0]);
+					
+					if (set == null) {
+						set = new HashSet<>();
+						verb_comp_map.put(verb_compVerb[0], set);
+					}
+					
+					set.add(verb_compVerb[1]);
+				}
+				
+				else if (line.startsWith(SUBJECT_PASSIVE) ){
+					String verb_noun[] = getPair(line);
+
+					Set<String> set = verb_SubjectPassive.get(verb_noun[0]);
+
+					if (set == null) {
+						set = new HashSet<>();
+						verb_SubjectPassive.put(verb_noun[0], set);
+					}
+
+					set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), verb_noun[1], verb_noun[1]));
+
+				}
+				
+				else if (line.startsWith(VERB_PASSIVE) ){
+					String verb_verb[] = getPair(line);					
+					verb_passive.put(verb_verb[0], verb_verb[1]);
 				}
 				
 				else if (line.startsWith(INDIRECT_SUBJECT)) {
@@ -105,7 +143,7 @@ public class DependencyExtractor {
 
 				}
 
-				else if ((line.startsWith(SUBJECT)) && !line.startsWith(SUBJECT_PASSIVE)) {
+				else if ((line.startsWith(SUBJECT))) {
 					String verb_noun[] = getPair(line);
 
 					Set<String> set = verb_Subject.get(verb_noun[0]);
@@ -239,6 +277,27 @@ public class DependencyExtractor {
 		// concepts.add(concept);
 		// }
 		// }
+		
+		
+		keys = verb_SubjectPassive.keySet();
+		
+		
+		for (String verb : keys) {
+
+			Set<String> subjs = verb_SubjectPassive.get(verb);
+
+			if (verb_passive.containsKey(verb)) {
+
+				String auxVerb = verb_passive.get(verb);
+
+				for (String sub : subjs) {					
+						Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(sub)),
+								new VerbWrapper(tokenMap, true, getWord(auxVerb)),
+								new ObjectWrapper(tokenMap, false, getWord(verb)));
+						concepts.add(concept);
+					}				
+			}
+		}
 
 		keys = noun_in_noun_map.keySet();
 
@@ -315,9 +374,14 @@ public class DependencyExtractor {
 
 				// If verb complement exists then use it
 
-				String compVerb = verb_comp_map.get(verb);
+				Set<String> compVerbSet = verb_comp_map.get(verb);
+				
+				boolean keyFound = false;
+				for(String compVerb: compVerbSet){
 
 				if (verb_Object.containsKey(compVerb)) {
+					
+					keyFound = true;
 
 					Set<String> objs = verb_Object.get(compVerb);
 					toBeRemovedObj.add(compVerb);
@@ -331,14 +395,16 @@ public class DependencyExtractor {
 							concepts.add(concept);
 						}
 					}
-				} else {
+				}
+				}
 
+				if (!keyFound) {
 					for (String sub : subjs) {
 						Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(sub)),
 								new VerbWrapper(tokenMap, true, getWord(verb)));
 						concepts.add(concept);
 					}
-				}
+				}			
 			}
 
 			else {

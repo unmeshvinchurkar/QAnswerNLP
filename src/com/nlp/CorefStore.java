@@ -23,7 +23,7 @@ public class CorefStore {
 	}
 
 	public String getCoRef(String sentNo, String pronoun, String defaultNoun) {
-		String noun = getCoRef(sentNo, pronoun);
+		String noun = getCoRef(sentNo, getWord(pronoun));
 
 		return noun != null ? noun : defaultNoun;
 	}
@@ -35,7 +35,7 @@ public class CorefStore {
 			return null;
 		}
 
-		return coRefMap.get(pronoun.trim());
+		return coRefMap.get(getWord(pronoun.trim()));
 
 	}
 
@@ -49,6 +49,15 @@ public class CorefStore {
 		}
 
 		coRefMap.put(pronoun.trim(), noun.trim());
+	}
+	
+	private  String getWord(String word) {
+		int i = word.indexOf("-");
+
+		if (i > 0) {
+			return word.substring(0, i);
+		}
+		return word;
 	}
 
 }

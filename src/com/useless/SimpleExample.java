@@ -40,7 +40,7 @@ public class SimpleExample {
 		// creates a StanfordCoreNLP object, with POS tagging, lemmatization,
 		// NER, parsing, and coreference resolution
 		Properties props = new Properties();
-		props.put("annotators", "tokenize, ssplit, pos,lemma,ner, parse ");
+		props.put("annotators", "tokenize, ssplit, pos,lemma,ner, parse, dcoref ");
 
 		// props.put("annotators", "tokenize, ssplit, pos,lemma,ner, regexner
 		// ");
@@ -50,8 +50,7 @@ public class SimpleExample {
 
 		// read some text from the file..
 		File inputFile = new File("C:\\Users\\unmeshvinchurkar\\Desktop\\sample.txt");
-		String text = "The strongest rain ever recorded in India shut down the financial hub of Mumbai, snapped communication lines, closed airports and forced thousands of people to sleep in their offices or walk home during the night, officials said today.";
-
+		String text = "Barack Obama was born in Hawaii.  He is the president. Obama was elected in 2008.";
 		// Files.toString(inputFile, Charset.forName("UTF-8"));
 
 		// create an empty Annotation just with the given text
@@ -72,6 +71,8 @@ public class SimpleExample {
 		 * System.out.println("word: " + word + " ne:" + ne); }
 		 */
 
+		
+		DependencyExtractor ex = new DependencyExtractor(document);
 		// these are all the sentences in this document
 		// a CoreMap is essentially a Map that uses class objects as keys and
 		// has values with custom types
@@ -83,6 +84,8 @@ public class SimpleExample {
 
 			// traversing the words in the current sentence
 			// a CoreLabel is a CoreMap with additional token-specific methods
+			
+			int sNo=0;
 			for (CoreLabel token : sentence.get(TokensAnnotation.class)) {
 
 				// this is the text of the token
@@ -95,7 +98,7 @@ public class SimpleExample {
 
 				tokenMap.put(word.trim().toLowerCase(), token);
 
-				System.out.println("word: " + word + " ne:" + ne);
+				//System.out.println("word: " + word + " ne:" + ne);
 
 				// System.out.println("word: " + word + " pos: " + pos + " ne:"
 				// + ne);
@@ -105,18 +108,15 @@ public class SimpleExample {
 					.get(SemanticGraphCoreAnnotations.CollapsedCCProcessedDependenciesAnnotation.class);
 			String dependentStr = graph.toString(SemanticGraph.OutputFormat.LIST);
 
-			DependencyExtractor ex = new DependencyExtractor(tokenMap);
-			Set<Concept> concepts = ex.extractDependencies(dependentStr, document);
-			
-			
-			for(Concept c: concepts){
-				
-				System.out.println(c);
-				System.out.println("_________________________________________________________________________");
-				
-				
-			}
+			ex.extractDependencies(tokenMap, dependentStr, sNo++);
 
+		}
+		
+		Set<Concept> concepts = ex.getConcepts();
+
+		for (Concept c : concepts) {
+			System.out.println(c);
+			System.out.println("_________________________________________________________________________");
 		}
 
 	}

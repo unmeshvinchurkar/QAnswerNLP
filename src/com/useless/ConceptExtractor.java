@@ -101,7 +101,11 @@ public class ConceptExtractor {
 				// out.println("The top level annotation");
 				// out.println(annotation.toShorterString());
 				List<CoreMap> sentences = annotation.get(CoreAnnotations.SentencesAnnotation.class);
+				
+				DependencyExtractor ex = new DependencyExtractor(annotation);
+				
 
+				int sNo =0;
 				for (CoreMap sentence : sentences) {
 
 					// List<MatchedExpression> exps =
@@ -133,8 +137,7 @@ public class ConceptExtractor {
 								.get(SemanticGraphCoreAnnotations.CollapsedCCProcessedDependenciesAnnotation.class);
 						String dependentStr = graph.toString(SemanticGraph.OutputFormat.LIST);
 
-						DependencyExtractor ex = new DependencyExtractor(tokenMap);
-						Set<Concept> concepts = ex.extractDependencies(dependentStr, annotation);
+						Set<Concept> concepts = ex.extractDependencies(tokenMap, dependentStr, sNo++);
 						
 						
 						for(Concept c: concepts){
