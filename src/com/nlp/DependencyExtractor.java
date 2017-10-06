@@ -140,8 +140,7 @@ public class DependencyExtractor {
 				else if (line.startsWith(VERB_PASSIVE) ){
 					String verb_verb[] = getPair(line);	
 					
-					bufReader.mark(2);
-					
+					bufReader.mark(2);					
 					String nextLine = bufReader.readLine();
 
 					// case tag expands verb, like (born) to (born in someplace)
@@ -194,15 +193,32 @@ public class DependencyExtractor {
 				else if ((line.startsWith(SUBJECT))) {
 					String verb_noun[] = getPair(line);
 
-					Set<String> set = verb_Subject.get(verb_noun[0]);
+					bufReader.mark(2);
+					String nextLine = bufReader.readLine();
 
-					if (set == null) {
-						set = new HashSet<>();
-						verb_Subject.put(verb_noun[0], set);
+					if (nextLine.startsWith("cop")) {
+						String copPair[] = getPair(nextLine);
+
+						Concept concept = new Concept(
+								new SubjectWrapper(tokenMap,
+										getWord(coRefStore.getCoRef(String.valueOf(sentenceNo), verb_noun[1],
+												verb_noun[1]))),
+								new VerbWrapper(tokenMap, true, getWord(copPair[1])),
+								new ObjectWrapper(tokenMap, false, getWord(copPair[0])));
+						concepts.add(concept);
+
+					} else {
+						bufReader.reset();
+
+						Set<String> set = verb_Subject.get(verb_noun[0]);
+
+						if (set == null) {
+							set = new HashSet<>();
+							verb_Subject.put(verb_noun[0], set);
+						}
+
+						set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), verb_noun[1], verb_noun[1]));
 					}
-
-					set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), verb_noun[1], verb_noun[1]));
-
 				}
 
 //			 else if (line.startsWith(NOUN_VERB)) {
@@ -567,7 +583,7 @@ public class DependencyExtractor {
 
 			// this is because it prints out a lot of self references which
 			// aren't that useful
-			if (c.getMentionsInTextualOrder().size() <= 1) {
+			if (c.getMentionsInTextualOrder().size() < 1) {
 				continue;
 			}
 
