@@ -34,10 +34,13 @@ public class DependencyExtractor {
 	public static final String NOUN_IN_NOUN = "nmod:in"; // recorded in India
 	public static final String NOUN_OF_NOUN = "nmod:of";
 	public static final String VB_FOR_NOUN = "nmod:for";
+	public static final String VB_TO_NOUN ="nmod:to";
 	//public static final String NOUN_VERB = "acl";
 	public static final String COMPOUND_WORDS = "compound";
 
 	public static final String VERB_COMPLEMENT = "xcomp";
+	
+	public static final String CASE_TAG = "case";
 
 	private Map<String, CoreLabel> tokenMap = null;
 
@@ -96,6 +99,7 @@ public class DependencyExtractor {
 	public Set<Concept> extractDependencies(Map<String, CoreLabel> tokenMap,String collapsedDeps, int sentenceNo) {
 		
 		this.tokenMap = tokenMap;
+		AbstractWrapper nul = null;
 		
 		System.out.println(collapsedDeps);
 		try {
@@ -140,7 +144,8 @@ public class DependencyExtractor {
 					
 					String nextLine = bufReader.readLine();
 
-					if (nextLine.startsWith("case")) {
+					// case tag expands verb, like (born) to (born in someplace)
+					if (nextLine.startsWith(CASE_TAG)) {
 						String casePair[] = getPair(nextLine);
 						verb_passiveCase.put(verb_verb[0], casePair[0]);
 
@@ -157,7 +162,12 @@ public class DependencyExtractor {
 					}
 					
 				}
-				
+				// only used with passive subject acts as object
+				else if (line.startsWith("acl:relcl")) {
+					String noun_verb[] = getPair(line);
+					verb_passiveCase.put(noun_verb[1], noun_verb[0]);
+				}
+				// acts as subject
 				else if (line.startsWith(INDIRECT_SUBJECT)) {
 					String noun_verb[] = getPair(line);
 
@@ -214,7 +224,8 @@ public class DependencyExtractor {
 						set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), verb_noun[1], verb_noun[1]));
 					}
 
-				} else if (line.startsWith(NOUN_IN_NOUN) || line.startsWith(IN)) {
+				}			 
+			 else if (line.startsWith(NOUN_IN_NOUN) || line.startsWith(IN)) {
 					String noun_noun[] = getPair(line);
 
 					Set<String> set = noun_in_noun_map.get(noun_noun[0]);
