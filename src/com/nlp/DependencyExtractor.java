@@ -165,7 +165,16 @@ public class DependencyExtractor {
 				// only used with passive subject acts as object
 				else if (line.startsWith("acl:relcl")) {
 					String noun_verb[] = getPair(line);
-					verb_passiveCase.put(noun_verb[1], noun_verb[0]);
+					verb_passiveCase.put(noun_verb[1],
+							coRefStore.getCoRef(String.valueOf(sentenceNo), noun_verb[0], noun_verb[0]));
+
+					Set<String> set = verb_Object.get(noun_verb[1]);
+					if (set == null) {
+						set = new HashSet<>();
+						verb_Object.put(noun_verb[1], set);
+					}
+					set.add(coRefStore.getCoRef(String.valueOf(sentenceNo), noun_verb[0], noun_verb[0]));
+
 				}
 				// acts as subject
 				else if (line.startsWith(INDIRECT_SUBJECT)) {
