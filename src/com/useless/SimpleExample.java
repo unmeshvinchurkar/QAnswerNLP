@@ -118,6 +118,15 @@ public class SimpleExample {
 			System.out.println(c);
 			System.out.println("_________________________________________________________________________");
 		}
+		
+		System.out.println("____________________________Compound Words________________________________");
+		
+		Set<String> words = ex.getCompoundWords();
+		
+		for (String w : words) {
+			System.out.println(w);
+			System.out.println("_________________________________________________________________________");
+		}
 
 	}
 

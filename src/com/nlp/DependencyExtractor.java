@@ -51,6 +51,9 @@ public class DependencyExtractor {
 	
 	//auxpass
 	private Map<String, String> verb_passive = new HashMap<>();
+	
+	//auxpass with case
+	private Map<String, String> verb_passiveCase = new HashMap<>();
 
 	// "dobj"
 	private Map<String, Set<String>> verb_Object = new HashMap<>();
@@ -82,6 +85,10 @@ public class DependencyExtractor {
 		coRefStore = buildCorefs(document);
 	}
 
+	public Set<String> getCompoundWords() {
+		return compoundWords;
+	}
+
 	public Set<Concept> getConcepts() {
 		return concepts;
 	}
@@ -93,6 +100,8 @@ public class DependencyExtractor {
 		System.out.println(collapsedDeps);
 		try {
 			BufferedReader bufReader = new BufferedReader(new StringReader(collapsedDeps));
+			
+			
 
 			String line = null;
 			while ((line = bufReader.readLine()) != null) {
@@ -125,8 +134,28 @@ public class DependencyExtractor {
 				}
 				
 				else if (line.startsWith(VERB_PASSIVE) ){
-					String verb_verb[] = getPair(line);					
-					verb_passive.put(verb_verb[0], verb_verb[1]);
+					String verb_verb[] = getPair(line);	
+					
+					bufReader.mark(2);
+					
+					String nextLine = bufReader.readLine();
+
+					if (nextLine.startsWith("case")) {
+						String casePair[] = getPair(nextLine);
+						verb_passiveCase.put(verb_verb[0], casePair[0]);
+
+						bufReader.mark(2);
+						nextLine = bufReader.readLine();
+
+						if (!nextLine.startsWith("nmod:")) {
+							bufReader.reset();
+						}
+
+					} else {
+						bufReader.reset();
+						verb_passive.put(verb_verb[0], verb_verb[1]);
+					}
+					
 				}
 				
 				else if (line.startsWith(INDIRECT_SUBJECT)) {
@@ -296,6 +325,16 @@ public class DependencyExtractor {
 								new ObjectWrapper(tokenMap, false, getWord(verb)));
 						concepts.add(concept);
 					}				
+			}
+			else if(verb_passiveCase.containsKey(verb)){
+				String noun = verb_passiveCase.get(verb);
+				
+				for (String sub : subjs) {					
+					Concept concept = new Concept(new SubjectWrapper(tokenMap, getWord(sub)),
+							new VerbWrapper(tokenMap, true, getWord(verb)),
+							new ObjectWrapper(tokenMap, false, getWord(noun)));
+					concepts.add(concept);
+				}				
 			}
 		}
 
